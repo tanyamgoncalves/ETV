@@ -7,6 +7,7 @@ function getData() {
   request.open('GET','Vowel-A.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
+      console.log('Buffer Was Loaded.');
     var audioData = request.response;
     ac.decodeAudioData(audioData, function(buffer) {
     audioBuffer = buffer;
@@ -26,7 +27,7 @@ var Grain = function(index) {
     // this.sine.type = 'sine';
     // this.sine.frequency.value = 440;
 	this.source = ac.createBufferSource();
-    this.source.buffer = this.audioBuffer;
+    this.source.buffer = audioBuffer;
     this.amp = 2;
 	this.gain = ac.createGain();
 	this.source.connect(this.gain);
@@ -68,9 +69,7 @@ Grain.prototype.isNotPlaying = function () {
 
 // somewhere else where we are using the class/object
 var mySynth = new Grain();
-mySynth.loadBuffer();
-mySynth.play();
-mySynth.dealloc(); 
+
 
 function playASynthFromTheBank() {
 var n;
