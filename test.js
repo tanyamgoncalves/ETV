@@ -28,7 +28,7 @@ var Grain = function(index) {
     // this.sine.frequency.value = 440;
 	// this.source = ac.createBufferSource();
     // this.source.buffer = audioBuffer;
-    this.amp = 2;
+    this.amp = 10;
 	this.gain = ac.createGain();
 	// this.source.connect(this.gain);
 	this.gain.connect(ac.destination);
