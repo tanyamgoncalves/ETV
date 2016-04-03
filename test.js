@@ -29,7 +29,7 @@ var Grain = function(index) {
 	this.playing = false;
 }
 
-// Set the audiobuffersourcenode -> starting position for grain -> duration change (arg) -> env design 
+// Set the audiobuffersourcenode [done] -> starting position for grain -> duration change (arg) [done] -> env design [done]
 
 var synthBank = new Array();
 
@@ -54,16 +54,15 @@ Grain.prototype.play = function(amp,dur,rate,start,win) {
         this.source.buffer = audioBuffer;
         this.source.connect(this.gain);
         
-        this.source.start(now,start,win);
+        this.source.start(now,start,win); // this function should allow me to specify the start time of the audio sample and the window of the envelope to specifiy a specifct position in the audio sample to play
         
         for(n=0;n<=x;n++){
-            this.gain.gain.linearRampToValueAtTime(amp*hanning(n,x),now+this.dur/x);
+            this.gain.gain.linearRampToValueAtTime(amp*hanning(n,x),(this.dur*(n+1)/x)+now);
             console.log(hanning(n,x));
         }
         
         this.source.playbackRate.value = rate;
-        
-		this.playing = true;
+        this.playing = true;
 	}
 	var index = this.index;
 	setTimeout(function() {
@@ -82,13 +81,13 @@ Grain.prototype.isNotPlaying = function () {
 	return (this.playing == false);
 }
 
-function playASynthFromTheBank(amp,dur,rate) {
+function playASynthFromTheBank(amp,dur,rate,start,win) {
 var n;
 for(n=0;n<10;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
 if(n<10) { // we found one that is not playing
-	synthBank[n].play(amp,dur,rate);
+	synthBank[n].play(amp,dur,rate,start,win);
 } else {
 	console.log("sorry too many notes playing right now");
 }
