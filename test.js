@@ -1,5 +1,5 @@
 var ac = new (window.AudioContext||window.webkitAudioContext)();
-var audioBuffer = ac.createBuffer(1, 49152, 48000);
+var audioBuffer;
 
 // load the audio sample
 function getData() {   
@@ -21,7 +21,7 @@ getData();
 
 var Grain = function(index) {
 	this.index = index;
-    this.amp = 10;
+    this.amp = 1;
     this.dur = 1;
 	this.gain = ac.createGain();
 	this.gain.connect(ac.destination);
@@ -33,33 +33,47 @@ var Grain = function(index) {
 
 var synthBank = new Array();
 
-for(var n=0;n<10;n++) {
+for(var n=0;n<20;n++) {
     synthBank[n] = new Grain(n);
 }
 
 
-function hanning(index,x) {
-    var win = 0.5 * (1 - Math.cos((2*(Math.PI)*(index))/(x-1)));
+function hanning(index,nPoints) {
+    var win = 0.5 * (1 - Math.cos((2*(Math.PI)*(index))/(nPoints-1)));
     return win;
-}
+} 
 
 
-Grain.prototype.play = function(amp,dur,rate,start,win) {
+Grain.prototype.play = function(amp,dur,rate,start) {
 	if(this.playing == false) {
 		var now = ac.currentTime;
-        var x = 32;
+
 		this.gain.gain.setValueAtTime(0,now);
         
         this.source = ac.createBufferSource();
         this.source.buffer = audioBuffer;
         this.source.connect(this.gain);
         
-        this.source.start(now,start,win); // this function should allow me to specify the start time of the audio sample and the window of the envelope to specifiy a specifct position in the audio sample to play
+        this.source.start(now,start,dur); // this function should allow me to specify the start time of the audio sample and the window of the envelope to specifiy a specifct position in the audio sample to play
         
-        for(n=0;n<=x;n++){
-            this.gain.gain.linearRampToValueAtTime(amp*hanning(n,x),(this.dur*(n+1)/x)+now);
-            console.log(hanning(n,x));
-        }
+        // 1. identifies zones of interest within sample
+        // 2. put grains together 
+        // 3. make simple things
+        
+        this.gain.gain.setValueAtTime(0,now);
+        this.gain.gain.linearRampToValueAtTime(amp*0.2,now+((dur/6))); 
+        this.gain.gain.linearRampToValueAtTime(amp*0.8,now+((dur/6)*2)); 
+        this.gain.gain.linearRampToValueAtTime(amp*1,now+((dur/6)*3)); 
+        this.gain.gain.linearRampToValueAtTime(amp*0.8,now+((dur/6)*4)); 
+        this.gain.gain.linearRampToValueAtTime(amp*0.2,now+((dur/6)*5)); 
+        this.gain.gain.linearRampToValueAtTime(0,now+dur); 
+        
+        /* var nPoints = 32;
+
+        for(n=0;n<=nPoints;n++){
+            this.gain.gain.linearRampToValueAtTime(amp*hanning(n,nPoints),(this.dur*(n+1)/nPoints)+now);
+            console.log(hanning(n,nPoints));
+        }   */
         
         this.source.playbackRate.value = rate;
         this.playing = true;
@@ -67,7 +81,7 @@ Grain.prototype.play = function(amp,dur,rate,start,win) {
 	var index = this.index;
 	setTimeout(function() {
 		synthBank[index].playing = false;
-	},1000);
+	},dur*1000+100);
 }
 
 
@@ -81,13 +95,13 @@ Grain.prototype.isNotPlaying = function () {
 	return (this.playing == false);
 }
 
-function playASynthFromTheBank(amp,dur,rate,start,win) {
+function playASynthFromTheBank(amp,dur,rate,start) {
 var n;
-for(n=0;n<10;n++) {
+for(n=0;n<20;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
-if(n<10) { // we found one that is not playing
-	synthBank[n].play(amp,dur,rate,start,win);
+if(n<20) { // we found one that is not playing
+	synthBank[n].play(amp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
 }
@@ -105,8 +119,13 @@ function updateGrainFrequency(x) {
 	grainPeriod = 1000/x;
 }
 
+grainAmp = 5;
+grainDur = 0.05;
+grainRate = 1;
+grainStart = 0;
+
 timeOutResponder = function() {
-	playASynthFromTheBank(grainAmplitude);
+	playASynthFromTheBank(grainAmp,grainDur,grainRate,grainStart);
 	setTimeout(timeOutResponder,grainPeriod);
 }
 
