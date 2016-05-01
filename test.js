@@ -1,4 +1,4 @@
-var ac = new (window.AudioContext||window.webkitAudioContext)();
+//var ac = new (window.AudioContext||window.webkitAudioContext)();
 var audioBuffer;
 
 // load the audio sample
@@ -17,34 +17,82 @@ function getData() {
   request.send();
 } 
 
-getData();
 
 var Grain = function(index) {
 	this.index = index;
-    this.amp = 1;
-    this.dur = 1;
+    // this.dur = 1;
 	this.gain = ac.createGain();
 	this.gain.connect(ac.destination);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
 
-// Set the audiobuffersourcenode [done] -> starting position for grain -> duration change (arg) [done] -> env design [done]
-
-var synthBank = new Array();
-
-for(var n=0;n<20;n++) {
-    synthBank[n] = new Grain(n);
-}
-
-
+/*
 function hanning(index,nPoints) {
     var win = 0.5 * (1 - Math.cos((2*(Math.PI)*(index))/(nPoints-1)));
     return win;
-} 
+}*/ 
 
+dbamp = function(x) {
+    return Math.pow(10,x/20)
+}
 
-Grain.prototype.play = function(amp,dur,rate,start) {
+Grain.prototype.play = function(db,dur,rate,start) {
+    var sampleDur = 1.24;
+    
+    if (db == null) {
+        console.log("WARNING: amp param required");
+        db = -20;
+    }
+    if (db>-3) {
+        console.log("WARNING: amp too high");
+        db = -3;
+    }
+    
+    var amp = dbamp(db)*dbamp(40);
+    
+
+    if (dur == null) {
+        console.log("WARNING: dur param required");
+        dur = 1;
+    }
+    if (dur<0.01) {
+        console.log("WARNING: dur below 10ms");
+        dur = 0.01;
+    }
+    if (dur>1) {
+        console.log("WARNING: dur above 1s");
+        dur = 1;
+    }
+    
+    
+    if (rate == null) {
+        console.log("WARNING: rate param required");
+        rate = 1;
+    }
+    if (rate<0.05) {
+        console.log("WARNING: rate too low");
+        rate = 0.05;
+    }
+    if (rate>8) {
+        console.log("WARNING: rate too high");
+        rate = 8;
+    }
+        
+    
+    if (start == null) {
+        console.log("WARNING: start param required");
+        start = 0;
+    }
+    if (start<0) {
+        console.log("WARNING: start less than 0");
+        start = 0;
+    }
+    if (start+dur>sampleDur) {
+        console.log("WARNING: start position and duration not valid");
+        start = sampleDur-dur;
+    }
+    
 	if(this.playing == false) {
 		var now = ac.currentTime;
 
@@ -54,11 +102,7 @@ Grain.prototype.play = function(amp,dur,rate,start) {
         this.source.buffer = audioBuffer;
         this.source.connect(this.gain);
         
-        this.source.start(now,start,dur); // this function should allow me to specify the start time of the audio sample and the window of the envelope to specifiy a specifct position in the audio sample to play
-        
-        // 1. identifies zones of interest within sample
-        // 2. put grains together 
-        // 3. make simple things
+        this.source.start(now,start,dur);
         
         this.gain.gain.setValueAtTime(0,now);
         this.gain.gain.linearRampToValueAtTime(amp*0.2,now+((dur/6))); 
@@ -84,7 +128,6 @@ Grain.prototype.play = function(amp,dur,rate,start) {
 	},dur*1000+100);
 }
 
-
 Grain.prototype.dealloc = function() {
 	this.source.stop();
 	this.source.disconnect(this.gain);
@@ -95,13 +138,26 @@ Grain.prototype.isNotPlaying = function () {
 	return (this.playing == false);
 }
 
-function playASynthFromTheBank(amp,dur,rate,start) {
+
+function apertInitialize() { 
+    
+    getData();
+    
+    synthBank = new Array();
+    
+    for(var n=0;n<20;n++) {
+        synthBank[n] = new Grain(n);
+    }    
+}
+
+
+function playASynthFromTheBank(dbamp,dur,rate,start) {   
 var n;
 for(n=0;n<20;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
 if(n<20) { // we found one that is not playing
-	synthBank[n].play(amp,dur,rate,start);
+	synthBank[n].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
 }
@@ -112,11 +168,19 @@ if(n<20) { // we found one that is not playing
 var grainPeriod = 1000;
 function updateGrainPeriod(x) { // period x is in milliseconds
 	grainPeriod = x;
-}
-
-// or if preferred
-function updateGrainFrequency(x) {
-	grainPeriod = 1000/x;
+    
+    if (grainPeriod == null) {
+        console.log("WARNING: grain period required");
+        grainPeriod = 1000;
+    }
+    if (grainPeriod>1000) {
+        console.log("WARNING: grain period greater than 1000");
+        grainPeriod = 1000;
+    }
+    if (grainPeriod<100) {
+        console.log("WARNING: grain period less than 100");
+        grainPeriod = 100;
+    }
 }
 
 grainAmp = 5;
@@ -128,5 +192,3 @@ timeOutResponder = function() {
 	playASynthFromTheBank(grainAmp,grainDur,grainRate,grainStart);
 	setTimeout(timeOutResponder,grainPeriod);
 }
-
-
