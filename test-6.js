@@ -5,7 +5,7 @@ var audioBuffer;
 // load the audio sample
 function getData() {   
   var request = new XMLHttpRequest();
-  request.open('GET','Vowel-A.wav', true);
+  request.open('GET','I-Hate-You.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
       console.log('Buffer Was Loaded.');
@@ -45,7 +45,7 @@ dbamp = function(x) {
 }
 
 Grain.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 1.24;
+    var sampleDur = 2.00;
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -61,15 +61,15 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
     if (dur == null) {
         console.log("WARNING: dur param required");
-        dur = 1;
+        dur = 2;
     }
     if (dur<0.01) {
         console.log("WARNING: dur below 10ms");
         dur = 0.01;
     }
-    if (dur>1) {
-        console.log("WARNING: dur above 1s");
-        dur = 1;
+    if (dur>2) {
+        console.log("WARNING: dur above 2s");
+        dur = 2;
     }
     
     
