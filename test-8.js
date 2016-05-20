@@ -1,6 +1,17 @@
 //var ac = new (window.AudioContext||window.webkitAudioContext)();
 var audioBuffer;
 
+$( document ).ready(function() {
+
+    $('<div/>', { id: 'theButton' }).appendTo('body').css({
+        'width' : '50%', 'height' : '20%',
+        'position' : 'absolute', 'top': '10%', 'left' : '25%',
+        'background-color': 'rgba(170, 240, 38,0.5)',
+        'border-radius' : '100px'
+      }).click(function(){
+        playASynthFromTheBank(-5,2,1,0,1000);
+      });
+});
 
 // load the audio sample
 function getData() {   
@@ -18,16 +29,19 @@ function getData() {
   request.send();
 } 
 
+/*
+function startup() {
+    var el = document.getElementsByTagName("touchArea")[0];
+    el.addEventListener("touchstart",apertStartAudio,false);
+} */
+
 
 var Grain = function(index) {
 	this.index = index;    
 	this.gain = ac.createGain();
     
-    // this.biquadFilter = ac.createBiquadFilter();
-    // this.convoler = ac.createConvoler();
-    
-    // this.biquadFilter.connect(ac.convoler);
-    // this.convolver.connect(ac.gain);
+    this.biquadFilter = ac.createBiquadFilter();
+   //  this.convolver = ac.createConvolver();
     
 	this.gain.connect(ac.destination);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
@@ -44,16 +58,16 @@ dbamp = function(x) {
     return Math.pow(10,x/20)
 }
 
-Grain.prototype.play = function(db,dur,rate,start) {
+Grain.prototype.play = function(db,dur,rate,start,filter) {
     var sampleDur = 2.00;
     
     if (db == null) {
         console.log("WARNING: amp param required");
         db = -20;
     }
-    if (db>-3) {
-        console.log("WARNING: amp too high");
-        db = -3;
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
     }
     
     var amp = dbamp(db)*dbamp(40);
@@ -61,15 +75,15 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
     if (dur == null) {
         console.log("WARNING: dur param required");
-        dur = 2;
+        dur = 0.25;
     }
     if (dur<0.01) {
         console.log("WARNING: dur below 10ms");
         dur = 0.01;
     }
-    if (dur>2) {
-        console.log("WARNING: dur above 2s");
-        dur = 2;
+    if (dur>0.25) {
+        console.log("WARNING: dur above 0.25s");
+        dur = 0.25;
     }
     
     
@@ -107,12 +121,17 @@ Grain.prototype.play = function(db,dur,rate,start) {
         
         this.source = ac.createBufferSource();
         this.source.buffer = audioBuffer;
-        this.source.connect(this.gain);
+        this.source.connect(this.biquadFilter);
         
-        // this.biquadFilter.type = "lowshelf";
-       // this.biquadFilter.frequency.value = 1000;
+       // this.source.connect(this.gain);
         
-        this.source.start(now,start,dur);
+        this.biquadFilter.connect(this.gain);
+        // this.convolver.connect(this.gain);
+        
+        this.biquadFilter.type = "lowshelf";
+        this.biquadFilter.frequency.value = 1000;
+        
+        this.source.start(now,start,dur,filter);
         
         this.gain.gain.setValueAtTime(0,now);
         this.gain.gain.linearRampToValueAtTime(amp*0.2,now+((dur/6))); 
@@ -140,7 +159,10 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
 Grain.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.gain);
+    
+	// this.source.disconnect(this.gain);
+    
+    this.source.disconnect(this.biquadFilter);
 	this.gain.disconnect(ac.destination);
 }
 
@@ -151,7 +173,6 @@ Grain.prototype.isNotPlaying = function () {
 function apertInitialize() { 
     
     getData();
-    
     synthBank = new Array();
     
     for(var n=0;n<20;n++) {
@@ -160,13 +181,16 @@ function apertInitialize() {
 }
 
 
-function playASynthFromTheBank(dbamp,dur,rate,start) {   
+function playASynthFromTheBank(dbamp,dur,rate,start,filter) {   
 var n;
+// var dur = 0.25;
+// var start = 0;
+    
 for(n=0;n<20;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
 if(n<20) { // we found one that is not playing
-	synthBank[n].play(dbamp,dur,rate,start);
+	synthBank[n].play(dbamp,dur,rate,start,filter);
 } else {
 	console.log("sorry too many notes playing right now");
 }
@@ -196,8 +220,9 @@ grainAmp = 5;
 grainDur = 0.05;
 grainRate = 1;
 grainStart = 0;
+grainFilter = 1000;
 
 timeOutResponder = function() {
-	playASynthFromTheBank(grainAmp,grainDur,grainRate,grainStart);
+	playASynthFromTheBank(grainAmp,grainDur,grainRate,grainStart,grainFilter);
 	setTimeout(timeOutResponder,grainPeriod);
 }
