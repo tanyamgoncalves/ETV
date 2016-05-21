@@ -10,9 +10,11 @@ $( document ).ready(function() {
       })
 });
 
-$(window).on("touchend", function(){
-   apertStartAudio();
+$(window).on("touchend", function(event){
+    unlock();
 });
+
+
 
 // load the audio sample
 function getData() {   
