@@ -2,15 +2,16 @@
 var audioBuffer;
 
 $( document ).ready(function() {
-
     $('<div/>', { id: 'theButton' }).appendTo('body').css({
         'width' : '50%', 'height' : '20%',
         'position' : 'absolute', 'top': '10%', 'left' : '25%',
         'background-color': 'rgba(170, 240, 38,0.5)',
         'border-radius' : '100px'
-      }).click(function(){
-        playASynthFromTheBank(-5,2,1,0,1000);
-      });
+      })
+});
+
+$(window).on("touchend", function(){
+   apertStartAudio();
 });
 
 // load the audio sample
