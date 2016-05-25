@@ -1,11 +1,55 @@
-//var ac = new (window.AudioContext||window.webkitAudioContext)();
 var audioBuffer;
+
+// Make things only play once iOS interaction
+var playSimpleOnce = false;
+
+// For iOS sampling
+function simple(freq,amp) {
+  apertStartAudio();
+    
+    if(playSimpleOnce == true) return;
+    playSimpleOnce = true;
+
+	var sine = ac.createOscillator();
+	sine.type = 'sine';
+	sine.frequency.value = freq;
+	var gain = ac.createGain();
+	sine.connect(gain);
+	gain.connect(ac.destination);
+	sine.start();
+	// envelope
+	var now = ac.currentTime;
+	gain.gain.setValueAtTime(0,now);
+  gain.gain.linearRampToValueAtTime(amp,now+0.005); gain.gain.linearRampToValueAtTime(0,now+0.405);
+	// schedule cleanup
+	setTimeout(function() {
+		sine.stop();
+		sine.disconnect(gain);
+		gain.disconnect(ac.destination);
+	},1000);
+};
+
+document.addEventListener('DOMContentLoaded',function() {
+  // write label to top of document
+  var div = document.createElement('div');
+  var text = document.createTextNode('apert (test-8.js)');
+  div.appendChild(text);
+  document.body.appendChild(div);
+  // create a clickable button and append to document
+  var button = document.createElement("button");
+  var label = document.createTextNode("simple test tone");
+  button.appendChild(label);
+  button.addEventListener('click',function() {
+    simple(440,0.5);
+  },false);
+  document.body.appendChild(button);
+},false);
 
 
 // load the audio sample
 function getData() {   
   var request = new XMLHttpRequest();
-  request.open('GET','Vowel-A.wav', true);
+  request.open('GET','Ou-Why-Singing.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
       console.log('Buffer Was Loaded.');
@@ -18,16 +62,19 @@ function getData() {
   request.send();
 } 
 
+/*
+function startup() {
+    var el = document.getElementsByTagName("touchArea")[0];
+    el.addEventListener("touchstart",apertStartAudio,false);
+} */
+
 
 var Grain = function(index) {
 	this.index = index;    
 	this.gain = ac.createGain();
     
-    // this.biquadFilter = ac.createBiquadFilter();
-    // this.convoler = ac.createConvoler();
-    
-    // this.biquadFilter.connect(ac.convoler);
-    // this.convolver.connect(ac.gain);
+    this.biquadFilter = ac.createBiquadFilter();
+   //  this.convolver = ac.createConvolver();
     
 	this.gain.connect(ac.destination);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
@@ -44,32 +91,32 @@ dbamp = function(x) {
     return Math.pow(10,x/20)
 }
 
-Grain.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 1.24;
+Grain.prototype.play = function(db,dur,rate,start,filter) {
+    var sampleDur = 3.00;
     
     if (db == null) {
         console.log("WARNING: amp param required");
         db = -20;
     }
-    if (db>-3) {
-        console.log("WARNING: amp too high");
-        db = -3;
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
     }
     
-    var amp = dbamp(db)*dbamp(40);
+    var amp = dbamp(db)*dbamp(60);
     
 
     if (dur == null) {
         console.log("WARNING: dur param required");
-        dur = 1;
+        dur = 0.03;
     }
-    if (dur<0.01) {
-        console.log("WARNING: dur below 10ms");
-        dur = 0.01;
+    if (dur<0.005) {
+        console.log("WARNING: dur below 5ms");
+        dur = 0.005;
     }
-    if (dur>1) {
-        console.log("WARNING: dur above 1s");
-        dur = 1;
+    if (dur>0.03) {
+        console.log("WARNING: dur above 30ms");
+        dur = 0.03;
     }
     
     
@@ -107,12 +154,17 @@ Grain.prototype.play = function(db,dur,rate,start) {
         
         this.source = ac.createBufferSource();
         this.source.buffer = audioBuffer;
-        this.source.connect(this.gain);
+        this.source.connect(this.biquadFilter);
         
-        // this.biquadFilter.type = "lowshelf";
-       // this.biquadFilter.frequency.value = 1000;
+       // this.source.connect(this.gain);
         
-        this.source.start(now,start,dur);
+        this.biquadFilter.connect(this.gain);
+        // this.convolver.connect(this.gain);
+        
+        this.biquadFilter.type = "lowshelf";
+        this.biquadFilter.frequency.value = 1000;
+        
+        this.source.start(now,start,dur,filter);
         
         this.gain.gain.setValueAtTime(0,now);
         this.gain.gain.linearRampToValueAtTime(amp*0.2,now+((dur/6))); 
@@ -140,7 +192,10 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
 Grain.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.gain);
+    
+	// this.source.disconnect(this.gain);
+    
+    this.source.disconnect(this.biquadFilter);
 	this.gain.disconnect(ac.destination);
 }
 
@@ -151,7 +206,6 @@ Grain.prototype.isNotPlaying = function () {
 function apertInitialize() { 
     
     getData();
-    
     synthBank = new Array();
     
     for(var n=0;n<20;n++) {
@@ -160,13 +214,16 @@ function apertInitialize() {
 }
 
 
-function playASynthFromTheBank(dbamp,dur,rate,start) {   
+function playASynthFromTheBank(dbamp,dur,rate,start,filter) {   
 var n;
+// var dur = 0.25;
+// var start = 0;
+    
 for(n=0;n<20;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
 if(n<20) { // we found one that is not playing
-	synthBank[n].play(dbamp,dur,rate,start);
+	synthBank[n].play(dbamp,dur,rate,start,filter);
 } else {
 	console.log("sorry too many notes playing right now");
 }
@@ -196,8 +253,9 @@ grainAmp = 5;
 grainDur = 0.05;
 grainRate = 1;
 grainStart = 0;
+grainFilter = 1000;
 
 timeOutResponder = function() {
-	playASynthFromTheBank(grainAmp,grainDur,grainRate,grainStart);
+	playASynthFromTheBank(grainAmp,grainDur,grainRate,grainStart,grainFilter);
 	setTimeout(timeOutResponder,grainPeriod);
 }
