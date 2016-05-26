@@ -1,14 +1,15 @@
 var audioBuffer;
 
-// Make things only play once iOS interaction
+// Make things only play for once iOS interaction
 var playSimpleOnce = false;
 
-// For iOS sampling
+// For iOS interaction
 function simple(freq,amp) {
   apertStartAudio();
     
+    // simple will only place once upon clicking the button
     if(playSimpleOnce == true) return;
-    playSimpleOnce = true;
+    playSimpleOnce = true; 
 
 	var sine = ac.createOscillator();
 	sine.type = 'sine';
@@ -32,7 +33,7 @@ function simple(freq,amp) {
 document.addEventListener('DOMContentLoaded',function() {
   // write label to top of document
   var div = document.createElement('div');
-  var text = document.createTextNode('apert (test-8.js)');
+  var text = document.createTextNode('apert (test.js)');
   div.appendChild(text);
   document.body.appendChild(div);
   // create a clickable button and append to document
@@ -74,14 +75,14 @@ var Grain = function(index) {
 	this.gain = ac.createGain();
     
     this.biquadFilter = ac.createBiquadFilter();
-   //  this.convolver = ac.createConvolver();
+   // this.convolver = ac.createConvolver();
     
 	this.gain.connect(ac.destination);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
 
-/*
+/* 
 function hanning(index,nPoints) {
     var win = 0.5 * (1 - Math.cos((2*(Math.PI)*(index))/(nPoints-1)));
     return win;
