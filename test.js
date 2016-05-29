@@ -215,10 +215,13 @@ function apertInitialize() {
 }
 
 
-function playASynthFromTheBank(dbamp,dur,rate,start,filter) {   
+function playASynthFromTheBank(dbamp,dur,rate,isRand,start,filter) {   
 var n;
-// var dur = 0.25;
-// var start = 0;
+
+var plusOrMinus = Math.random() < 0.5 ? -1 : 1;
+var deviation = Math.random()*(plusOrMinus*1*0.01)+1.00;
+rate = isRand ? rate * deviation : rate;
+    console.log(rate); 
     
 for(n=0;n<20;n++) {
 	if(synthBank[n].isNotPlaying())break;
