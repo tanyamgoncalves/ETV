@@ -115,9 +115,9 @@ Grain.prototype.play = function(db,dur,rate,start) {
         console.log("WARNING: dur below 5ms");
         dur = 0.005;
     }
-    if (dur>0.05) {
-        console.log("WARNING: dur above 50ms");
-        dur = 0.05;
+    if (dur>3.00) {
+        console.log("WARNING: dur above 3s");
+        dur = 3.00;
     }
     
     
@@ -220,12 +220,12 @@ var n;
 
 var randomRate = Math.random() < 0.5 ? -1 : 1;
 var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
-    rate = rate * deviationRate;
+    rate = rate * Math.fround(deviationRate);
     console.log(rate); 
     
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
-    start = start * deviationStart;
+    start = start * Math.fround(deviationStart);
     console.log(start);
     
 for(n=0;n<20;n++) {
@@ -259,7 +259,17 @@ function updateGrainPeriod(x) { // period x is in milliseconds
 }
 
 
-timeOutResponder = function(dbamp,dur,rate,rmod,start,smod) {
+var counter = 0;
+
+timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod) {
 	playASynthFromTheBank(dbamp,dur,rate,rmod,start,smod);
-	setTimeout(timeOutResponder,grainPeriod);
+    
+    if(counter==grainNum){
+        counter=0;
+        return;
+    }
+    else{
+        counter++; // counter = counter + 1
+        setTimeout(timeOutResponder(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod),grainPeriod);
+    }
 }
