@@ -1,4 +1,5 @@
 var audioBuffer;
+// var sampleBuffer;
 
 // Make things only play for once iOS interaction
 var playSimpleOnce = false;
@@ -21,7 +22,8 @@ function simple(freq,amp) {
 	// envelope
 	var now = ac.currentTime;
 	gain.gain.setValueAtTime(0,now);
-  gain.gain.linearRampToValueAtTime(amp,now+0.005); gain.gain.linearRampToValueAtTime(0,now+0.405);
+    gain.gain.linearRampToValueAtTime(amp,now+0.005);
+    gain.gain.linearRampToValueAtTime(0,now+0.405);
 	// schedule cleanup
 	setTimeout(function() {
 		sine.stop();
@@ -29,6 +31,12 @@ function simple(freq,amp) {
 		gain.disconnect(ac.destination);
 	},1000);
 };
+
+var canvas = document.createElement("canvas");
+var context = canvas.getContext('2d');
+var ga = 0.0;
+var timerId = 0;
+var angle = 0;
 
 document.addEventListener('DOMContentLoaded',function() {
   // write label to top of document
@@ -44,10 +52,14 @@ document.addEventListener('DOMContentLoaded',function() {
     simple(440,0.5);
   },false);
   document.body.appendChild(button);
+  canvas.height = 1000;
+  canvas.width = 1500;
+  context.fillStyle = "#000000";
+  context.fillRect(0,0,canvas.width,canvas.height);
+  document.body.appendChild(canvas);
 },false);
 
-
-// load the audio sample
+// load the audio sample for the composition, parts I, II, and III
 function getData() {   
   var request = new XMLHttpRequest();
   request.open('GET','Ou-Why-Singing.wav', true);
@@ -64,10 +76,146 @@ function getData() {
 } 
 
 /*
+// load the audio sample for the final component of the composition, part IV
+function loadSample() {
+  var request = new XMLHttpRequest();
+  request.open('GET','', true);
+  request.responseType = 'arraybuffer';
+  request.onload = function() {
+      console.log('Sound File for Part IV was Loaded.');
+    var sampleData = request.response;
+    ac.decodeAudioData(sampleData, function(buffer) {
+    sampleBuffer = buffer;
+  },
+    function(e){"Error with decoding audio data" + e.err});
+  }
+  request.send();
+} */
+    
+
+/*
 function startup() {
     var el = document.getElementsByTagName("touchArea")[0];
     el.addEventListener("touchstart",apertStartAudio,false);
 } */
+
+
+var Rectangle = function(width,height,borderWidth,bcolor,rspeed){
+    this.x = Math.floor(Math.random()*canvas.width);
+    this.y = Math.floor(Math.random()*canvas.height);
+    this.width = width;
+    this.height = height;
+    this.borderWidth = borderWidth;
+    this.fcolor = '#' + Math.random().toString(16).slice(2, 8).toUpperCase();
+    this.bcolor = bcolor;
+    this.rspeed = rspeed;
+    this.vx = Math.random()*20-10;
+    this.vy = Math.random()*20-10;
+    this.radius = Math.random()*20+20;
+}
+
+Rectangle.prototype.drawRectangle = function(){
+    context.beginPath();
+    context.rect(this.x,this.y, this.width, this.height);
+    context.fillStyle = this.fcolor;
+    context.fill();
+    context.lineWidth = this.borderWidth;
+    context.strokeStyle = this.bcolor;
+    context.stroke();
+
+    var gradient = context.createRadialGradient(this.x,this.y,0,this.x,this.y,this.radius);
+    gradient.addColorStop(0, "white");
+    gradient.addColorStop(0.4, "white");
+	gradient.addColorStop(0.4, this.fcolor);
+    gradient.addColorStop(1, "black");
+		
+    context.fillStyle = gradient;
+    context.arc(this.x, this.y, this.radius, Math.PI*2, false);
+    context.fill();
+		
+    this.x += this.vx;
+    this.y += this.vy;
+		
+    if(this.x < -50) this.x = canvas.width+50;
+    if(this.y < -50) this.y = canvas.height+50;
+    if(this.x > canvas.width+50) this.x = -50;
+    if(this.y > canvas.height+50) this.y = -50;
+    
+}
+
+Rectangle.prototype.animate = function(canvas,context,startTime,dur){
+    // update
+    var time = (new Date()).getTime() - startTime;
+
+    var linearSpeed = 100;
+    // pixels / second
+    var newX = linearSpeed * time / 1000;
+
+    if(newX < this.width - this.width - this.borderWidth / 2) {
+      this.x = newX;
+    }
+
+    // clear
+    //context.clearRect(0, 0, canvas.width, canvas.height);
+
+    this.drawRectangle();
+
+    // request new frame
+    //requestAnimFrame(function() {
+    //    this.animate(canvas, context, startTime, dur);
+    //});  
+}
+
+function fadeIn(){
+    context.clearRect(0,0, canvas.width,canvas.height);
+    context.globalAlpha = ga;
+    ga = ga + 0.1;
+
+    if (ga > 1.0)
+    {
+        fadeOut();
+        goingUp = false;
+        clearInterval(timerId);
+    }
+}
+
+function fadeOut(){
+    context.clearRect(0,0, canvas.width,canvas.height);
+    context.globalAlpha = ga;
+
+    ga = ga - 0.1;
+
+    if (ga < 0){
+        goingUp = false;
+        clearInterval(timerId);
+    }
+}
+
+var rectBank = new Array();
+
+function partOne(){
+    createParticles(1);
+    setInterval(draw, 33);
+}
+
+function draw(){
+    for(var i=0;i<rectBank.length;i++){
+        rectBank[i].drawRectangle();
+    }  
+}
+
+function createParticles(number){
+    for (var j = 0; j<=number;j++){
+        rectBank[j] = new Rectangle(5,5,0,'black',Math.floor(Math.random()*100));
+    }
+}
+                          
+window.requestAnimFrame = (function(callback) {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        };
+      })();
 
 
 var Grain = function(index) {
@@ -221,7 +369,16 @@ var n;
 var randomRate = Math.random() < 0.5 ? -1 : 1;
 var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
     rate = rate * Math.fround(deviationRate);
-    console.log(rate); 
+    console.log(rate);
+var startTime = (new Date()).getTime();
+//var rectangle = new Rectangle(50,50,0,'black');
+    //rectangle.drawRectangle(context);
+    //timerId = setInterval("fadeIn()", 300);
+    //rectangle.animate(canvas,context,startTime,1);
+    
+    
+    partOne(); // part I design call 
+    
     
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
