@@ -1,5 +1,12 @@
-var audioBuffer;
-// var sampleBuffer;
+var audioBuffer; // for the main part of the composition: part's I through III
+var sampleBuffer; // for the final part of the composition: part IV
+
+// Create the elements for the visual canvas
+var canvas = document.createElement("canvas");
+var context = canvas.getContext('2d');
+var ga = 0.0;
+var timerId = 0;
+var angle = 0;
 
 // Make things only play for once iOS interaction
 var playSimpleOnce = false;
@@ -32,12 +39,6 @@ function simple(freq,amp) {
 	},1000);
 };
 
-var canvas = document.createElement("canvas");
-var context = canvas.getContext('2d');
-var ga = 0.0;
-var timerId = 0;
-var angle = 0;
-
 document.addEventListener('DOMContentLoaded',function() {
   // write label to top of document
   var div = document.createElement('div');
@@ -52,54 +53,15 @@ document.addEventListener('DOMContentLoaded',function() {
     simple(440,0.5);
   },false);
   document.body.appendChild(button);
-  canvas.height = 1000;
-  canvas.width = 1500;
-  context.fillStyle = "#000000";
+  canvas.height = 1000; // height of HTML5 canvas
+  canvas.width = 1500; // width
+  context.fillStyle = "#000000"; // make the canvas black
   context.fillRect(0,0,canvas.width,canvas.height);
   document.body.appendChild(canvas);
 },false);
 
-// load the audio sample for the composition, parts I, II, and III
-function getData() {   
-  var request = new XMLHttpRequest();
-  request.open('GET','Ou-Why-Singing.wav', true);
-  request.responseType = 'arraybuffer';
-  request.onload = function() {
-      console.log('Buffer Was Loaded.');
-    var audioData = request.response;
-    ac.decodeAudioData(audioData, function(buffer) {
-    audioBuffer = buffer;
-  },
-    function(e){"Error with decoding audio data" + e.err});
-  }
-  request.send();
-} 
 
-/*
-// load the audio sample for the final component of the composition, part IV
-function loadSample() {
-  var request = new XMLHttpRequest();
-  request.open('GET','', true);
-  request.responseType = 'arraybuffer';
-  request.onload = function() {
-      console.log('Sound File for Part IV was Loaded.');
-    var sampleData = request.response;
-    ac.decodeAudioData(sampleData, function(buffer) {
-    sampleBuffer = buffer;
-  },
-    function(e){"Error with decoding audio data" + e.err});
-  }
-  request.send();
-} */
-    
-
-/*
-function startup() {
-    var el = document.getElementsByTagName("touchArea")[0];
-    el.addEventListener("touchstart",apertStartAudio,false);
-} */
-
-
+// Visual code
 var Rectangle = function(width,height,borderWidth,bcolor,rspeed){
     this.x = Math.floor(Math.random()*canvas.width);
     this.y = Math.floor(Math.random()*canvas.height);
@@ -116,7 +78,7 @@ var Rectangle = function(width,height,borderWidth,bcolor,rspeed){
 
 Rectangle.prototype.drawRectangle = function(){
     context.beginPath();
-    context.rect(this.x,this.y, this.width, this.height);
+    context.rect(this.x, this.y, this.width, this.height);
     context.fillStyle = this.fcolor;
     context.fill();
     context.lineWidth = this.borderWidth;
@@ -139,8 +101,7 @@ Rectangle.prototype.drawRectangle = function(){
     if(this.x < -50) this.x = canvas.width+50;
     if(this.y < -50) this.y = canvas.height+50;
     if(this.x > canvas.width+50) this.x = -50;
-    if(this.y > canvas.height+50) this.y = -50;
-    
+    if(this.y > canvas.height+50) this.y = -50;   
 }
 
 Rectangle.prototype.animate = function(canvas,context,startTime,dur){
@@ -148,6 +109,7 @@ Rectangle.prototype.animate = function(canvas,context,startTime,dur){
     var time = (new Date()).getTime() - startTime;
 
     var linearSpeed = 100;
+    
     // pixels / second
     var newX = linearSpeed * time / 1000;
 
@@ -218,23 +180,152 @@ window.requestAnimFrame = (function(callback) {
       })();
 
 
+// Load the audio sample for the composition, parts I, II, and III
+function getData() {   
+  var request = new XMLHttpRequest();
+  request.open('GET','Ou-Why-Singing.wav', true);
+  request.responseType = 'arraybuffer';
+  request.onload = function() {
+      console.log('Buffer Was Loaded.');
+    var audioData = request.response;
+    ac.decodeAudioData(audioData, function(buffer) {
+    audioBuffer = buffer;
+  },
+    function(e){"Error with decoding audio data" + e.err});
+  }
+  request.send();
+} 
+
+
+// Load the audio sample for the final component of the composition, part IV
+function loadSample() {
+  var request = new XMLHttpRequest();
+  request.open('GET','Is-Everything-Okay-Singing.wav', true);
+  request.responseType = 'arraybuffer';
+  request.onload = function() {
+      console.log('Sound File for Part IV was Loaded.');
+    var sampleData = request.response;
+    ac.decodeAudioData(sampleData, function(buffer) {
+    sampleBuffer = buffer;
+  },
+    function(e){"Error with decoding audio data" + e.err});
+  }
+  request.send();
+} 
+
+// Code for part IV
+var Sample = function(index) {
+	this.index = index;    
+	this.sample = ac.createGain();
+	this.sample.connect(ac.destination);
+    this.sample.gain.setValueAtTime(0,ac.currentTime);
+	this.playing = false;
+}
+
+dbamplitude = function(x) {
+    return Math.pow(10,x/20)
+}
+
+Sample.prototype.play = function(db,dur,rate,start) {
+    var sampleDur = 15.00;
+    
+    if (db == null) {
+        console.log("WARNING: amp param required");
+        db = -20;
+    }
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
+    }
+    
+    var amplitude = dbamplitude(db)*dbamplitude(40);
+    
+
+    if (dur == null) {
+        console.log("WARNING: dur param required");
+        dur = 0.05;
+    }
+    if (dur<0.005) {
+        console.log("WARNING: dur below 5ms");
+        dur = 0.005;
+    }
+    if (dur>15.00) {
+        console.log("WARNING: dur above 15s");
+        dur = 15.00;
+    }
+    
+    
+    if (rate == null) {
+        console.log("WARNING: rate param required");
+        rate = 1;
+    }
+    if (rate<0.05) {
+        console.log("WARNING: rate too low");
+        rate = 0.05;
+    }
+    if (rate>8) {
+        console.log("WARNING: rate too high");
+        rate = 8;
+    }
+        
+    
+    if (start == null) {
+        console.log("WARNING: start param required");
+        start = 0;
+    }
+    if (start<0) {
+        console.log("WARNING: start less than 0");
+        start = 0;
+    }
+    if (start+dur>sampleDur) {
+        console.log("WARNING: start position and duration not valid");
+        start = sampleDur-dur;
+    }
+    
+	if(this.playing == false) {
+		var now = ac.currentTime;
+        
+		this.sample.gain.setValueAtTime(0,now);
+        this.source = ac.createBufferSource();
+        this.source.buffer = sampleBuffer;
+        this.source.connect(this.sample);
+        this.source.start(now,start,dur);
+        
+        this.sample.gain.setValueAtTime(0,now);
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
+        this.sample.gain.linearRampToValueAtTime(0,now+dur); 
+        
+        this.source.playbackRate.value = rate;
+        this.playing = true;
+	}
+	var index = this.index;
+	setTimeout(function() {
+		samplePlay[index].playing = false;
+	},dur*1000+100);
+}
+
+Sample.prototype.dealloc = function() {
+	this.source.stop();
+	this.source.disconnect(this.sample);
+}
+
+Sample.prototype.isNotPlaying = function () {
+	return (this.playing == false);
+}
+
+
+// Code for part's I, II, III
 var Grain = function(index) {
 	this.index = index;    
 	this.gain = ac.createGain();
-    
-    //this.biquadFilter = ac.createBiquadFilter();
-    //this.convolver = ac.createConvolver();
-    
 	this.gain.connect(ac.destination);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
-
-/* 
-function hanning(index,nPoints) {
-    var win = 0.5 * (1 - Math.cos((2*(Math.PI)*(index))/(nPoints-1)));
-    return win;
-}*/ 
 
 dbamp = function(x) {
     return Math.pow(10,x/20)
@@ -298,21 +389,11 @@ Grain.prototype.play = function(db,dur,rate,start) {
     
 	if(this.playing == false) {
 		var now = ac.currentTime;
-
-		this.gain.gain.setValueAtTime(0,now);
         
+		this.gain.gain.setValueAtTime(0,now);
         this.source = ac.createBufferSource();
         this.source.buffer = audioBuffer;
-        // this.source.connect(this.biquadFilter);
-        
         this.source.connect(this.gain);
-        
-        //this.biquadFilter.connect(this.gain);
-        // this.convolver.connect(this.gain);
-        
-       // this.biquadFilter.type = "lowshelf";
-       // this.biquadFilter.frequency.value = 1000;
-        
         this.source.start(now,start,dur);
         
         this.gain.gain.setValueAtTime(0,now);
@@ -322,13 +403,6 @@ Grain.prototype.play = function(db,dur,rate,start) {
         this.gain.gain.linearRampToValueAtTime(amp*0.8,now+((dur/6)*4)); 
         this.gain.gain.linearRampToValueAtTime(amp*0.2,now+((dur/6)*5)); 
         this.gain.gain.linearRampToValueAtTime(0,now+dur); 
-        
-        /* var nPoints = 32;
-
-        for(n=0;n<=nPoints;n++){
-            this.gain.gain.linearRampToValueAtTime(amp*hanning(n,nPoints),(this.dur*(n+1)/nPoints)+now);
-            console.log(hanning(n,nPoints));
-        }   */
         
         this.source.playbackRate.value = rate;
         this.playing = true;
@@ -341,11 +415,7 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
 Grain.prototype.dealloc = function() {
 	this.source.stop();
-    
 	this.source.disconnect(this.gain);
-    
-    //this.source.disconnect(this.biquadFilter);
-	//this.gain.disconnect(ac.destination);
 }
 
 Grain.prototype.isNotPlaying = function () {
@@ -355,11 +425,17 @@ Grain.prototype.isNotPlaying = function () {
 function apertInitialize() { 
     
     getData();
+    loadSample();
     synthBank = new Array();
+    samplePlay = new Array();
     
     for(var n=0;n<20;n++) {
         synthBank[n] = new Grain(n);
     }    
+    
+    for(var m=0;m<20;m++) {
+        samplePlay[m] = new Sample(m);
+    }   
 }
 
 
@@ -371,15 +447,10 @@ var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
     rate = rate * Math.fround(deviationRate);
     console.log(rate);
 var startTime = (new Date()).getTime();
-//var rectangle = new Rectangle(50,50,0,'black');
-    //rectangle.drawRectangle(context);
-    //timerId = setInterval("fadeIn()", 300);
-    //rectangle.animate(canvas,context,startTime,1);
     
-    
-    partOne(); // part I design call 
-    
-    
+    // part I design call, eachtime 'timeOutResponder' is called, partOne will update the visuals
+    partOne(); 
+      
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
@@ -395,8 +466,21 @@ if(n<20) { // we found one that is not playing
 }
 } 
 
-// playASynthFromTheBank();
+function playPartFour(dbamp,dur,rate,start) {
+    var m;
+        
+    for(m=0;m<20;m++) {
+	   if(samplePlay[m].isNotPlaying())break;
+    }
+    if(m<20) { // we found one that is not playing
+        samplePlay[m].play(dbamp,dur,rate,start);
+    } else {
+        console.log("sorry too many notes playing right now");
+    }
+}
 
+playPartFour();
+    
 var grainPeriod = 1000;
 function updateGrainPeriod(x) { // period x is in milliseconds
 	grainPeriod = x;
@@ -414,7 +498,6 @@ function updateGrainPeriod(x) { // period x is in milliseconds
         grainPeriod = 100;
     }
 }
-
 
 var counter = 0;
 
