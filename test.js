@@ -160,6 +160,17 @@ function partOne(){
     setInterval(draw, 33);
 }
 
+function partTwo(){
+}
+
+function partThree(){
+}
+
+function partFour(){
+    createParticles(1);
+    setInterval(draw, 1);
+}
+
 function draw(){
     for(var i=0;i<rectBank.length;i++){
         rectBank[i].drawRectangle();
@@ -313,7 +324,7 @@ Sample.prototype.dealloc = function() {
 	this.source.disconnect(this.sample);
 }
 
-Sample.prototype.isNotPlaying = function () {
+Sample.prototype.notPlaying = function () {
 	return (this.playing == false);
 }
 
@@ -466,11 +477,14 @@ if(n<20) { // we found one that is not playing
 }
 } 
 
+
 function playPartFour(dbamp,dur,rate,start) {
     var m;
-        
+    
+    partFour();
+    
     for(m=0;m<20;m++) {
-	   if(samplePlay[m].isNotPlaying())break;
+	   if(samplePlay[m].notPlaying())break;
     }
     if(m<20) { // we found one that is not playing
         samplePlay[m].play(dbamp,dur,rate,start);
