@@ -156,19 +156,8 @@ function fadeOut(){
 var rectBank = new Array();
 
 function partOne(){
-    createParticles(1);
+    createParticles(10);
     setInterval(draw, 33);
-}
-
-function partTwo(){
-}
-
-function partThree(){
-}
-
-function partFour(){
-    createParticles(1);
-    setInterval(draw, 1);
 }
 
 function draw(){
@@ -188,7 +177,7 @@ window.requestAnimFrame = (function(callback) {
         function(callback) {
           window.setTimeout(callback, 1000 / 60);
         };
-      })();
+      });
 
 
 // Load the audio sample for the composition, parts I, II, and III
@@ -481,8 +470,6 @@ if(n<20) { // we found one that is not playing
 function playPartFour(dbamp,dur,rate,start) {
     var m;
     
-    partFour();
-    
     for(m=0;m<20;m++) {
 	   if(samplePlay[m].notPlaying())break;
     }
@@ -493,7 +480,7 @@ function playPartFour(dbamp,dur,rate,start) {
     }
 }
 
-playPartFour();
+// playPartFour();
     
 var grainPeriod = 1000;
 function updateGrainPeriod(x) { // period x is in milliseconds
