@@ -3,10 +3,16 @@ var sampleBuffer; // for the final part of the composition: part IV
 
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
+canvas.style.background = 'black';
 var context = canvas.getContext('2d');
 var ga = 0.0;
 var timerId = 0;
 var angle = 0;
+
+// Global adjustments to the particles (vel and color not used yet)
+var gvel = 0.1;
+var gsize = 15;
+var gcolor = 0;
 
 // Make things only play for once iOS interaction
 var playSimpleOnce = false;
@@ -62,18 +68,15 @@ document.addEventListener('DOMContentLoaded',function() {
 
 
 // Visual code
-var Rectangle = function(width,height,borderWidth,bcolor,rspeed){
+var Rectangle = function(){
     this.x = Math.floor(Math.random()*canvas.width);
     this.y = Math.floor(Math.random()*canvas.height);
-    this.width = width;
-    this.height = height;
-    this.borderWidth = borderWidth;
+    this.vx = Math.random()*0.5;
+    this.vy = Math.random()*0.5;
+    this.width = 1;
+    this.height = 1;
     this.fcolor = '#' + Math.random().toString(16).slice(2, 8).toUpperCase();
-    this.bcolor = bcolor;
-    this.rspeed = rspeed;
-    this.vx = Math.random()*20-10;
-    this.vy = Math.random()*20-10;
-    this.radius = Math.random()*20+20;
+    this.radius = 10;
 }
 
 Rectangle.prototype.drawRectangle = function(){
@@ -81,20 +84,17 @@ Rectangle.prototype.drawRectangle = function(){
     context.rect(this.x, this.y, this.width, this.height);
     context.fillStyle = this.fcolor;
     context.fill();
-    context.lineWidth = this.borderWidth;
-    context.strokeStyle = this.bcolor;
-    context.stroke();
 
     var gradient = context.createRadialGradient(this.x,this.y,0,this.x,this.y,this.radius);
     gradient.addColorStop(0, "white");
     gradient.addColorStop(0.4, "white");
 	gradient.addColorStop(0.4, this.fcolor);
-    gradient.addColorStop(1, "black");
+    gradient.addColorStop(1, "white");
 		
     context.fillStyle = gradient;
-    context.arc(this.x, this.y, this.radius, Math.PI*2, false);
+    context.arc(this.x, this.y, this.radius*gsize, Math.PI*2, false);
     context.fill();
-		
+    
     this.x += this.vx;
     this.y += this.vy;
 		
@@ -104,80 +104,47 @@ Rectangle.prototype.drawRectangle = function(){
     if(this.y > canvas.height+50) this.y = -50;   
 }
 
-Rectangle.prototype.animate = function(canvas,context,startTime,dur){
-    // update
-    var time = (new Date()).getTime() - startTime;
+//initialize the rect bank
+var rectBank = [];
+ 
+window.requestAnimFrame = (function(callback) {
+    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+    function(callback) {
+        window.setTimeout(callback, 1000 / 60);
+    };
+});
 
-    var linearSpeed = 100;
-    
-    // pixels / second
-    var newX = linearSpeed * time / 1000;
-
-    if(newX < this.width - this.width - this.borderWidth / 2) {
-      this.x = newX;
-    }
-
-    // clear
-    //context.clearRect(0, 0, canvas.width, canvas.height);
-
-    this.drawRectangle();
-
-    // request new frame
-    //requestAnimFrame(function() {
-    //    this.animate(canvas, context, startTime, dur);
-    //});  
-}
-
-function fadeIn(){
-    context.clearRect(0,0, canvas.width,canvas.height);
-    context.globalAlpha = ga;
-    ga = ga + 0.1;
-
-    if (ga > 1.0)
-    {
-        fadeOut();
-        goingUp = false;
-        clearInterval(timerId);
+//This populates the rectBank depending on how many grains are being played (number)
+function createParticles(number){
+    for (var j = 0; j<=number;j++){
+        rectBank[j] = new Rectangle();
     }
 }
 
-function fadeOut(){
-    context.clearRect(0,0, canvas.width,canvas.height);
-    context.globalAlpha = ga;
-
-    ga = ga - 0.1;
-
-    if (ga < 0){
-        goingUp = false;
-        clearInterval(timerId);
-    }
+//This function is called to loop through the animation
+//Every time it is called it draws a single frame
+function animationLoop(){
+    clear();
+    draw();
+    queue();
 }
 
-var rectBank = new Array();
-
-function partOne(){
-    createParticles(10);
-    setInterval(draw, 33);
+//This clears the screen so a new fram can be drawn
+function clear(){
+    context.clearRect(0,0,canvas.width,canvas.height);
 }
 
+//This draws each rectangle in the list
 function draw(){
     for(var i=0;i<rectBank.length;i++){
         rectBank[i].drawRectangle();
     }  
 }
 
-function createParticles(number){
-    for (var j = 0; j<=number;j++){
-        rectBank[j] = new Rectangle(5,5,0,'black',Math.floor(Math.random()*100));
-    }
+//This queues up the next frame to be drawn (sort of like timeOut but for animations)
+function queue(){
+    window.requestAnimationFrame(animationLoop);
 }
-                          
-window.requestAnimFrame = (function(callback) {
-        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
-        function(callback) {
-          window.setTimeout(callback, 1000 / 60);
-        };
-      });
 
 
 // Load the audio sample for the composition, parts I, II, and III
@@ -447,9 +414,6 @@ var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
     rate = rate * Math.fround(deviationRate);
     console.log(rate);
 var startTime = (new Date()).getTime();
-    
-    // part I design call, eachtime 'timeOutResponder' is called, partOne will update the visuals
-    partOne(); 
       
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
@@ -505,12 +469,36 @@ var counter = 0;
 timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod) {
 	playASynthFromTheBank(dbamp,dur,rate,rmod,start,smod);
     
-    if(counter==grainNum){
+   if(counter==0){
+        //start the animation loop
+        animationLoop();
+       
+        //clear the rect bank
+        rectBank = [];
+       
+        //create one particle for each grain
+        createParticles(grainNum);
+       
+        //adjust global variables depending on dur
+        gsize = dur;
+        gvel = dur;
+        gcolor = dur;
+       
+        //increment the counter
+        counter++;
+    }
+    
+    else if(counter==grainNum){
+        console.log("exit");
         counter=0;
         return;
     }
+    
     else{
+        console.log("increment");
         counter++; // counter = counter + 1
-        setTimeout(timeOutResponder(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod),grainPeriod);
     }
+    
+    console.log(rectBank);
+    setTimeout(timeOutResponder(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod),grainPeriod);
 }
