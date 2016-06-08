@@ -1,17 +1,35 @@
 var audioBuffer; // for the main part of the composition: part's I through III
 var sampleBuffer; // for the final part of the composition: part IV
+    
 
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
-canvas.style.background = 'black';
 var context = canvas.getContext('2d');
+var canvasRatio = canvas.height / canvas.width;
+var windowRatio = window.innerHight / window.innerWidth;
+
 var ga = 0.0;
 var timerId = 0;
 var angle = 0;
 
+var width;
+var height;
+
+if (windowRatio < canvasRatio) {
+    height = window.innerHeight;
+    width = height / canvasRatio;
+} else {
+    width = window.innerWidth;
+    height = width * canvasRatio;
+}
+
+canvas.style.background = 'black';
+canvas.style.width = width + 'px';
+canvas.style.height = height + 'px';
+
 // Global adjustments to the particles (vel and color not used yet)
 var gvel = 0.1;
-var gsize = 15;
+var gsize = 200;
 var gcolor = 0;
 
 // Make things only play for once iOS interaction
@@ -59,10 +77,10 @@ document.addEventListener('DOMContentLoaded',function() {
     simple(440,0.5);
   },false);
   document.body.appendChild(button);
-  canvas.height = 1000; // height of HTML5 canvas
-  canvas.width = 1500; // width
+  canvas.height = window.innerHeight; // height of HTML5 canvas
+  canvas.width = window.innerWidth; // width
   context.fillStyle = "#000000"; // make the canvas black
-  context.fillRect(0,0,canvas.width,canvas.height);
+  context.fillRect(0,0,window.innerHeight,window.innerWidth);
   document.body.appendChild(canvas);
 },false);
 
@@ -167,7 +185,7 @@ function getData() {
 // Load the audio sample for the final component of the composition, part IV
 function loadSample() {
   var request = new XMLHttpRequest();
-  request.open('GET','Is-Everything-Okay-Singing.wav', true);
+  request.open('GET','mono.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
       console.log('Sound File for Part IV was Loaded.');
@@ -194,7 +212,7 @@ dbamplitude = function(x) {
 }
 
 Sample.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 15.00;
+    var sampleDur = 213;
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -210,29 +228,21 @@ Sample.prototype.play = function(db,dur,rate,start) {
 
     if (dur == null) {
         console.log("WARNING: dur param required");
-        dur = 0.05;
+        dur = 213;
     }
-    if (dur<0.005) {
-        console.log("WARNING: dur below 5ms");
-        dur = 0.005;
+    if (dur<0.5) {
+        console.log("WARNING: dur below 0.5s");
+        dur = 0.5;
     }
-    if (dur>15.00) {
-        console.log("WARNING: dur above 15s");
-        dur = 15.00;
+    if (dur>213) {
+        console.log("WARNING: dur above 213s");
+        dur = 213;
     }
     
     
     if (rate == null) {
         console.log("WARNING: rate param required");
         rate = 1;
-    }
-    if (rate<0.05) {
-        console.log("WARNING: rate too low");
-        rate = 0.05;
-    }
-    if (rate>8) {
-        console.log("WARNING: rate too high");
-        rate = 8;
     }
         
     
@@ -413,6 +423,7 @@ var randomRate = Math.random() < 0.5 ? -1 : 1;
 var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
     rate = rate * Math.fround(deviationRate);
     console.log(rate);
+    
 var startTime = (new Date()).getTime();
       
 var randomStart = Math.random() < 0.5 ? 1 : 1;
@@ -420,13 +431,13 @@ var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     console.log(start);
     
-for(n=0;n<20;n++) {
+for(n=0;n<100;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
-if(n<20) { // we found one that is not playing
+if(n<100) { // we found one that is not playing
 	synthBank[n].play(dbamp,dur,rate,start);
 } else {
-	console.log("sorry too many notes playing right now");
+	//console.log("sorry too many notes playing right now");
 }
 } 
 
@@ -434,22 +445,31 @@ if(n<20) { // we found one that is not playing
 function playPartFour(dbamp,dur,rate,start) {
     var m;
     
-    for(m=0;m<20;m++) {
+    for(m=0;m<100;m++) {
 	   if(samplePlay[m].notPlaying())break;
     }
-    if(m<20) { // we found one that is not playing
+    if(m<100) { // we found one that is not playing
         samplePlay[m].play(dbamp,dur,rate,start);
     } else {
-        console.log("sorry too many notes playing right now");
+        // console.log("sorry too many notes playing right now");
     }
 }
 
 // playPartFour();
+   
+function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { // period x is in milliseconds
     
-var grainPeriod = 1000;
-function updateGrainPeriod(x) { // period x is in milliseconds
-	grainPeriod = x;
+    var randomGrainNum = Math.random() < 0.5 ? -1 : 1;
+    var deviationNum = Math.random()*(randomGrainNum*nmod*0.01)+2.5;
+    grainNum = grainNum * Math.fround(deviationNum);
+    console.log(grainNum);
     
+    var randomGrainPeriod = Math.random() < 0.5 ? -1 : 1;
+    var deviationGrain = Math.random()*(randomGrainPeriod*gmod*0.01)+1.5;
+    grainPeriod = grainPeriod * Math.fround(deviationGrain);
+    console.log(grainPeriod);
+
+    /*
     if (grainPeriod == null) {
         console.log("WARNING: grain period required");
         grainPeriod = 1000;
@@ -461,12 +481,12 @@ function updateGrainPeriod(x) { // period x is in milliseconds
     if (grainPeriod<100) {
         console.log("WARNING: grain period less than 100");
         grainPeriod = 100;
-    }
+    } */
 }
 
 var counter = 0;
 
-timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod) {
+timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playASynthFromTheBank(dbamp,dur,rate,rmod,start,smod);
     
    if(counter==0){
@@ -489,16 +509,12 @@ timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod)
     }
     
     else if(counter==grainNum){
-        console.log("exit");
         counter=0;
         return;
     }
     
     else{
-        console.log("increment");
         counter++; // counter = counter + 1
     }
-    
-    console.log(rectBank);
-    setTimeout(timeOutResponder(dbamp,dur,rate,rmod,start,smod,grainNum,grainPeriod),grainPeriod);
+    setTimeout(timeOutResponder(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
 }
