@@ -406,11 +406,11 @@ function apertInitialize() {
     synthBank = new Array();
     samplePlay = new Array();
     
-    for(var n=0;n<20;n++) {
+    for(var n=0;n<100;n++) {
         synthBank[n] = new Grain(n);
     }    
     
-    for(var m=0;m<20;m++) {
+    for(var m=0;m<100;m++) {
         samplePlay[m] = new Sample(m);
     }   
 }
@@ -442,7 +442,7 @@ if(n<100) { // we found one that is not playing
 } 
 
 
-function playPartFour(dbamp,dur,rate,start) {
+function callHim(dbamp,dur,rate,start) {
     var m;
     
     for(m=0;m<100;m++) {
@@ -455,7 +455,6 @@ function playPartFour(dbamp,dur,rate,start) {
     }
 }
 
-// playPartFour();
    
 function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { // period x is in milliseconds
     
@@ -486,7 +485,7 @@ function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { // period x is in m
 
 var counter = 0;
 
-timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
+playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playASynthFromTheBank(dbamp,dur,rate,rmod,start,smod);
     
    if(counter==0){
@@ -516,5 +515,5 @@ timeOutResponder = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPe
     else{
         counter++; // counter = counter + 1
     }
-    setTimeout(timeOutResponder(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
+    setTimeout(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
 }
