@@ -1,35 +1,18 @@
 var audioBuffer; // for the main part of the composition: part's I through III
 var sampleBuffer; // for the final part of the composition: part IV
     
-
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
+canvas.style.background = 'black';
 var context = canvas.getContext('2d');
-var canvasRatio = canvas.height / canvas.width;
-var windowRatio = window.innerHight / window.innerWidth;
 
 var ga = 0.0;
 var timerId = 0;
 var angle = 0;
 
-var width;
-var height;
-
-if (windowRatio < canvasRatio) {
-    height = window.innerHeight;
-    width = height / canvasRatio;
-} else {
-    width = window.innerWidth;
-    height = width * canvasRatio;
-}
-
-canvas.style.background = 'black';
-canvas.style.width = width + 'px';
-canvas.style.height = height + 'px';
-
 // Global adjustments to the particles (vel and color not used yet)
 var gvel = 0.1;
-var gsize = 200;
+var gsize = 10;
 var gcolor = 0;
 
 // Make things only play for once iOS interaction
@@ -66,64 +49,73 @@ function simple(freq,amp) {
 document.addEventListener('DOMContentLoaded',function() {
   // write label to top of document
   var div = document.createElement('div');
-  var text = document.createTextNode('apert (test.js)');
-  div.appendChild(text);
   document.body.appendChild(div);
+    
   // create a clickable button and append to document
-  var button = document.createElement("button");
+  var button = document.createElement("IMG");
+  button.src = "start-button.png";
+    
+    button.height = 500;
+    button.width = 500;
+    
   var label = document.createTextNode("simple test tone");
   button.appendChild(label);
   button.addEventListener('click',function() {
     simple(440,0.5);
+      button.parentNode.removeChild(button);
+      document.body.appendChild(canvas);
   },false);
   document.body.appendChild(button);
-  canvas.height = window.innerHeight; // height of HTML5 canvas
-  canvas.width = window.innerWidth; // width
+  canvas.height = document.documentElement.clientHeight; // height of HTML5 canvas
+  canvas.width = document.documentElement.clientWidth; // width
   context.fillStyle = "#000000"; // make the canvas black
-  context.fillRect(0,0,window.innerHeight,window.innerWidth);
-  document.body.appendChild(canvas);
+  context.fillRect(0,0,canvas.height,canvas.width);
 },false);
 
 
 // Visual code
-var Rectangle = function(){
+var Rectangle = function(index){
     this.x = Math.floor(Math.random()*canvas.width);
     this.y = Math.floor(Math.random()*canvas.height);
-    this.vx = Math.random()*0.5;
-    this.vy = Math.random()*0.5;
-    this.width = 1;
-    this.height = 1;
+    this.width = 5;
+    this.height = 5;
     this.fcolor = '#' + Math.random().toString(16).slice(2, 8).toUpperCase();
-    this.radius = 10;
+    this.animTime = 1;
+    this.alpha = 1;
+    this.index = index;
+    this.isAnimating = false;
 }
 
-Rectangle.prototype.drawRectangle = function(){
-    context.beginPath();
-    context.rect(this.x, this.y, this.width, this.height);
-    context.fillStyle = this.fcolor;
-    context.fill();
-
-    var gradient = context.createRadialGradient(this.x,this.y,0,this.x,this.y,this.radius);
-    gradient.addColorStop(0, "white");
-    gradient.addColorStop(0.4, "white");
-	gradient.addColorStop(0.4, this.fcolor);
-    gradient.addColorStop(1, "white");
-		
-    context.fillStyle = gradient;
-    context.arc(this.x, this.y, this.radius*gsize, Math.PI*2, false);
-    context.fill();
+Rectangle.prototype.draw = function(){
+    if(this.animTime >= 0){
+        context.beginPath();
+        context.rect(this.x, this.y, this.width*gsize, this.height*gsize);
+        context.fillStyle = this.fcolor;
+        context.fill();
     
-    this.x += this.vx;
-    this.y += this.vy;
-		
-    if(this.x < -50) this.x = canvas.width+50;
-    if(this.y < -50) this.y = canvas.height+50;
-    if(this.x > canvas.width+50) this.x = -50;
-    if(this.y > canvas.height+50) this.y = -50;   
+        this.animTime += (-0.05/this.dur); // += (-0.05/dur); (-this.dur/100)
+    }
+    else{
+        this.isAnimating = false;
+        this.animTime = 1;
+        this.x = Math.floor(Math.random()*canvas.width);
+        this.y = Math.floor(Math.random()*canvas.height);
+        this.fcolor = '#' + Math.random().toString(16).slice(2, 8).toUpperCase();
+    }
 }
 
-//initialize the rect bank
-var rectBank = [];
+Rectangle.prototype.setDur = function(dur){
+    this.dur = dur;
+}
+
+Rectangle.prototype.queueDraw = function(){
+    this.isAnimating = true;
+}
+
+Rectangle.prototype.isNotAnimating = function () {
+	return (this.isAnimating == false);
+}
+
  
 window.requestAnimFrame = (function(callback) {
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
@@ -132,37 +124,33 @@ window.requestAnimFrame = (function(callback) {
     };
 });
 
-//This populates the rectBank depending on how many grains are being played (number)
-function createParticles(number){
-    for (var j = 0; j<=number;j++){
-        rectBank[j] = new Rectangle();
+function drawAParticleFromTheBank(dur){
+    var j;
+    
+    for(j=0;j<100;j++){
+        if(rectBank[j].isNotAnimating())break;
+    }
+    
+    if(j<100) {
+        rectBank[j].queueDraw();
+        rectBank[j].setDur(dur);
     }
 }
-
-//This function is called to loop through the animation
-//Every time it is called it draws a single frame
+    
 function animationLoop(){
     clear();
-    draw();
-    queue();
+    for(var i=0;i<100;i++){
+        if(rectBank[i].isAnimating){
+            rectBank[i].draw();
+        }
+    }
+    requestAnimationFrame(animationLoop);
 }
 
-//This clears the screen so a new fram can be drawn
+    
 function clear(){
     context.clearRect(0,0,canvas.width,canvas.height);
-}
-
-//This draws each rectangle in the list
-function draw(){
-    for(var i=0;i<rectBank.length;i++){
-        rectBank[i].drawRectangle();
-    }  
-}
-
-//This queues up the next frame to be drawn (sort of like timeOut but for animations)
-function queue(){
-    window.requestAnimationFrame(animationLoop);
-}
+} 
 
 
 // Load the audio sample for the composition, parts I, II, and III
@@ -403,8 +391,10 @@ function apertInitialize() {
     
     getData();
     loadSample();
+    
     synthBank = new Array();
     samplePlay = new Array();
+    rectBank = new Array();
     
     for(var n=0;n<100;n++) {
         synthBank[n] = new Grain(n);
@@ -412,7 +402,12 @@ function apertInitialize() {
     
     for(var m=0;m<100;m++) {
         samplePlay[m] = new Sample(m);
-    }   
+    } 
+    
+    for(var k=0;k<100;k++) {
+        rectBank[k] = new Rectangle(k);
+    }
+    animationLoop();   
 }
 
 
@@ -422,14 +417,14 @@ var n;
 var randomRate = Math.random() < 0.5 ? -1 : 1;
 var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
     rate = rate * Math.fround(deviationRate);
-    console.log(rate);
+    // console.log(rate);
     
 var startTime = (new Date()).getTime();
       
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
-    console.log(start);
+    // console.log(start);
     
 for(n=0;n<100;n++) {
 	if(synthBank[n].isNotPlaying())break;
@@ -459,14 +454,16 @@ function callHim(dbamp,dur,rate,start) {
 function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { // period x is in milliseconds
     
     var randomGrainNum = Math.random() < 0.5 ? -1 : 1;
-    var deviationNum = Math.random()*(randomGrainNum*nmod*0.01)+2.5;
+    var deviationNum = Math.random()*(randomGrainNum*nmod*0.01);
     grainNum = grainNum * Math.fround(deviationNum);
-    console.log(grainNum);
+    // console.log(grainNum);
     
-    var randomGrainPeriod = Math.random() < 0.5 ? -1 : 1;
-    var deviationGrain = Math.random()*(randomGrainPeriod*gmod*0.01)+1.5;
+   // var randomGrainPeriod = Math.random() < 0.5 ? -1 : 1;
+   // var deviationGrain = Math.random()*(randomGrainPeriod*gmod*0.01);
+    
+    var deviationGrain = Math.random()*gmod*2-gmod;
     grainPeriod = grainPeriod * Math.fround(deviationGrain);
-    console.log(grainPeriod);
+    // console.log(grainPeriod);
 
     /*
     if (grainPeriod == null) {
@@ -487,27 +484,9 @@ var counter = 0;
 
 playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playASynthFromTheBank(dbamp,dur,rate,rmod,start,smod);
+    drawAParticleFromTheBank(dur);   
     
-   if(counter==0){
-        //start the animation loop
-        animationLoop();
-       
-        //clear the rect bank
-        rectBank = [];
-       
-        //create one particle for each grain
-        createParticles(grainNum);
-       
-        //adjust global variables depending on dur
-        gsize = dur;
-        gvel = dur;
-        gcolor = dur;
-       
-        //increment the counter
-        counter++;
-    }
-    
-    else if(counter==grainNum){
+    if(counter==grainNum){
         counter=0;
         return;
     }
