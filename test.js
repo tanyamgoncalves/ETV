@@ -425,7 +425,7 @@ sampleTwo.prototype.play = function(db,dur,rate,start) {
 	}
 	var index = this.index;
 	setTimeout(function() {
-		samplePlay[index].playing = false;
+		synthBankTwo[index].playing = false;
 	},dur*1000+100);
 }
 
@@ -531,7 +531,7 @@ sampleThree.prototype.play = function(db,dur,rate,start) {
 	}
 	var index = this.index;
 	setTimeout(function() {
-		samplePlay[index].playing = false;
+		synthBankThree[index].playing = false;
 	},dur*1000+100);
 }
 
@@ -543,14 +543,6 @@ sampleThree.prototype.dealloc = function() {
 sampleThree.prototype.notPlaying = function () {
 	return (this.playing == false);
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -675,22 +667,22 @@ function apertInitialize() {
     
     
     
-    for(var n=0;n<100;n++) {
+    for(var n=0;n<10;n++) {
         synthBank[n] = new Grain(n);
     } 
     
-    for(var o=0;o<100;o++) {
+    for(var o=0;o<10;o++) {
         synthBankTwo[o] = new sampleTwo(o);
     }  
     
-     for(var p=0;p<100;p++) {
+     for(var p=0;p<10;p++) {
         synthBankThree[p] = new sampleThree(p);
     }  
  
     
-    for(var m=0;m<100;m++) {
-        samplePlay[m] = new Sample(m);
-    } 
+     // for(var m=0;m<100;m++) {
+       // samplePlay[m] = new Sample(m);
+   // } 
     
     for(var k=0;k<100;k++) {
         rectBank[k] = new Rectangle(k);
@@ -715,10 +707,10 @@ var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     // console.log(start);
     
-for(n=0;n<100;n++) {
+for(n=0;n<10;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
-if(n<100) { // we found one that is not playing
+if(n<10) { // we found one that is not playing
 	synthBank[n].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
@@ -739,10 +731,10 @@ var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     
-for(o=0;o<100;o++) {
+for(o=0;o<10;o++) {
 	if(synthBankTwo[o].notPlaying())break;
 }
-if(o<100) { 
+if(o<10) { 
 	synthBankTwo[o].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
@@ -763,10 +755,10 @@ var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     
-for(p=0;p<100;p++) {
+for(p=0;p<10;p++) {
 	if(synthBankThree[p].notPlaying())break;
 }
-if(p<100) { 
+if(p<10) { 
 	synthBankThree[p].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
@@ -776,7 +768,7 @@ if(p<100) {
 
 function callHim(dbamp,dur,rate,start) {
     var m;
-    
+    /*
     for(m=0;m<100;m++) {
 	   if(samplePlay[m].notPlaying())break;
     }
@@ -784,7 +776,7 @@ function callHim(dbamp,dur,rate,start) {
         samplePlay[m].play(dbamp,dur,rate,start);
     } else {
         // console.log("sorry too many notes playing right now");
-    }
+    } */
 }
 
    
