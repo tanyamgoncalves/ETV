@@ -1,7 +1,8 @@
-var audioBufferOne; 
-var audioBufferTwo;
-// var audioBufferThree;
-var sampleBuffer; 
+var audioBufferOne; // sample one
+var audioBufferTwo; // sample two
+var audioBufferThree; // sample three
+
+var sampleBuffer; // sample four (phone ring)
     
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
@@ -189,7 +190,7 @@ function getDataTwo() {
   request.send();
 } 
 
-/*
+
 function getDataThree() {   
   var request = new XMLHttpRequest();
   request.open('GET','hey-vocals.wav', true);
@@ -203,12 +204,12 @@ function getDataThree() {
     function(e){"Error with decoding audio data" + e.err});
   }
   request.send();
-} */
+} 
 
 
 function loadSample() {
   var request = new XMLHttpRequest();
-  request.open('GET','mono.wav', true);
+  request.open('GET','ringing-phone-tone.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
       console.log('Sound File for Part IV was Loaded.');
@@ -222,224 +223,6 @@ function loadSample() {
 } 
 
 
-
-
-// Code for sample 2
-var sampleTwo = function(index) {
-    this.index = index;    
-	this.sampletwo = ac.createGain();
-	this.sampletwo.connect(ac.destination);
-    this.sampletwo.gain.setValueAtTime(0,ac.currentTime);
-	this.playing = false;
-}
-
-dbamplitude = function(x) {
-    return Math.pow(10,x/20)
-}
-
-sampleTwo.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 20;
-    
-    if (db == null) {
-        console.log("WARNING: amp param required");
-        db = -20;
-    }
-    if (db>-2) {
-        console.log("WARNING: amp too high above -2db");
-        db = -2;
-    }
-    
-    var amplitude = dbamplitude(db)*dbamplitude(40);
-    
-
-    if (dur == null) {
-        console.log("WARNING: dur param required");
-        dur = 20;
-    }
-    if (dur<0.005) {
-        console.log("WARNING: dur below 0.005ms");
-        dur = 0.005;
-    }
-    if (dur>20) {
-        console.log("WARNING: dur above 20s");
-        dur = 20;
-    }
-    
-    
-    if (rate == null) {
-        console.log("WARNING: rate param required");
-        rate = 1;
-    }
-     if (rate<0.05) {
-        console.log("WARNING: rate too low");
-        rate = 0.05;
-    }
-    if (rate>8) {
-        console.log("WARNING: rate too high");
-        rate = 8;
-    }
-        
-    
-    if (start == null) {
-        console.log("WARNING: start param required");
-        start = 0;
-    }
-    if (start<0) {
-        console.log("WARNING: start less than 0");
-        start = 0;
-    }
-    if (start+dur>sampleDur) {
-        console.log("WARNING: start position and duration not valid");
-        start = sampleDur-dur;
-    }
-    
-	if(this.playing == false) {
-		var now = ac.currentTime;
-        
-		this.sampletwo.gain.setValueAtTime(0,now);
-        this.source = ac.createBufferSource();
-        this.source.buffer = audioBufferTwo;
-        this.source.connect(this.sampletwo);
-        this.source.start(now,start,dur);
-        
-        this.sampletwo.gain.setValueAtTime(0,now);
-        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
-        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
-        this.sampletwo.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
-        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
-        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
-        this.sampletwo.gain.linearRampToValueAtTime(0,now+dur); 
-        
-        this.source.playbackRate.value = rate;
-        this.playing = true;
-	}
-	var index = this.index;
-	setTimeout(function() {
-		samplePlay[index].playing = false;
-	},dur*1000+100);
-}
-
-sampleTwo.prototype.dealloc = function() {
-	this.source.stop();
-	this.source.disconnect(this.sample);
-}
-
-sampleTwo.prototype.notPlaying = function () {
-	return (this.playing == false);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Code for sample 4
-var Sample = function(index) {
-	this.index = index;    
-	this.sample = ac.createGain();
-	this.sample.connect(ac.destination);
-    this.sample.gain.setValueAtTime(0,ac.currentTime);
-	this.playing = false;
-}
-
-dbamplitude = function(x) {
-    return Math.pow(10,x/20)
-}
-
-Sample.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 213;
-    
-    if (db == null) {
-        console.log("WARNING: amp param required");
-        db = -20;
-    }
-    if (db>-2) {
-        console.log("WARNING: amp too high above -2db");
-        db = -2;
-    }
-    
-    var amplitude = dbamplitude(db)*dbamplitude(40);
-    
-
-    if (dur == null) {
-        console.log("WARNING: dur param required");
-        dur = 213;
-    }
-    if (dur<0.5) {
-        console.log("WARNING: dur below 0.5s");
-        dur = 0.5;
-    }
-    if (dur>213) {
-        console.log("WARNING: dur above 213s");
-        dur = 213;
-    }
-    
-    
-    if (rate == null) {
-        console.log("WARNING: rate param required");
-        rate = 1;
-    }
-        
-    
-    if (start == null) {
-        console.log("WARNING: start param required");
-        start = 0;
-    }
-    if (start<0) {
-        console.log("WARNING: start less than 0");
-        start = 0;
-    }
-    if (start+dur>sampleDur) {
-        console.log("WARNING: start position and duration not valid");
-        start = sampleDur-dur;
-    }
-    
-	if(this.playing == false) {
-		var now = ac.currentTime;
-        
-		this.sample.gain.setValueAtTime(0,now);
-        this.source = ac.createBufferSource();
-        this.source.buffer = sampleBuffer;
-        this.source.connect(this.sample);
-        this.source.start(now,start,dur);
-        
-        this.sample.gain.setValueAtTime(0,now);
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
-        this.sample.gain.linearRampToValueAtTime(0,now+dur); 
-        
-        this.source.playbackRate.value = rate;
-        this.playing = true;
-	}
-	var index = this.index;
-	setTimeout(function() {
-		samplePlay[index].playing = false;
-	},dur*1000+100);
-}
-
-Sample.prototype.dealloc = function() {
-	this.source.stop();
-	this.source.disconnect(this.sample);
-}
-
-Sample.prototype.notPlaying = function () {
-	return (this.playing == false);
-}
 
 
 
@@ -551,6 +334,215 @@ Grain.prototype.isNotPlaying = function () {
 
 
 
+// Code for sample 2
+var sampleTwo = function(index) {
+    this.index = index;    
+	this.sampletwo = ac.createGain();
+	this.sampletwo.connect(ac.destination);
+    this.sampletwo.gain.setValueAtTime(0,ac.currentTime);
+	this.playing = false;
+}
+
+dbamplitude = function(x) {
+    return Math.pow(10,x/20)
+}
+
+sampleTwo.prototype.play = function(db,dur,rate,start) {
+    var sampleDur = 20;
+    
+    if (db == null) {
+        console.log("WARNING: amp param required");
+        db = -20;
+    }
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
+    }
+    
+    var amplitude = dbamplitude(db)*dbamplitude(40);
+    
+
+    if (dur == null) {
+        console.log("WARNING: dur param required");
+        dur = 20;
+    }
+    if (dur<0.005) {
+        console.log("WARNING: dur below 0.005ms");
+        dur = 0.005;
+    }
+    if (dur>20) {
+        console.log("WARNING: dur above 20s");
+        dur = 20;
+    }
+    
+    
+    if (rate == null) {
+        console.log("WARNING: rate param required");
+        rate = 1;
+    }
+     if (rate<0.05) {
+        console.log("WARNING: rate too low");
+        rate = 0.05;
+    }
+    if (rate>8) {
+        console.log("WARNING: rate too high");
+        rate = 8;
+    }
+        
+    
+    if (start == null) {
+        console.log("WARNING: start param required");
+        start = 0;
+    }
+    if (start<0) {
+        console.log("WARNING: start less than 0");
+        start = 0;
+    }
+    if (start+dur>sampleDur) {
+        console.log("WARNING: start position and duration not valid");
+        start = sampleDur-dur;
+    }
+    
+	if(this.playing == false) {
+		var now = ac.currentTime;
+        
+		this.sampletwo.gain.setValueAtTime(0,now);
+        this.source = ac.createBufferSource();
+        this.source.buffer = audioBufferTwo;
+        this.source.connect(this.sampletwo);
+        this.source.start(now,start,dur);
+        
+        this.sampletwo.gain.setValueAtTime(0,now);
+        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
+        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
+        this.sampletwo.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
+        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
+        this.sampletwo.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
+        this.sampletwo.gain.linearRampToValueAtTime(0,now+dur); 
+        
+        this.source.playbackRate.value = rate;
+        this.playing = true;
+	}
+	var index = this.index;
+	setTimeout(function() {
+		samplePlay[index].playing = false;
+	},dur*1000+100);
+}
+
+sampleTwo.prototype.dealloc = function() {
+	this.source.stop();
+	this.source.disconnect(this.sample);
+}
+
+sampleTwo.prototype.notPlaying = function () {
+	return (this.playing == false);
+}
+
+
+
+// Code for sample 3
+var sampleThree = function(index) {
+    this.index = index;    
+	this.samplethree = ac.createGain();
+	this.samplethree.connect(ac.destination);
+    this.samplethree.gain.setValueAtTime(0,ac.currentTime);
+	this.playing = false;
+}
+
+dbamplitude = function(x) {
+    return Math.pow(10,x/20)
+}
+
+sampleThree.prototype.play = function(db,dur,rate,start) {
+    var sampleDur = 20;
+    
+    if (db == null) {
+        console.log("WARNING: amp param required");
+        db = -20;
+    }
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
+    }
+    
+    var amplitude = dbamplitude(db)*dbamplitude(40);
+    
+
+    if (dur == null) {
+        console.log("WARNING: dur param required");
+        dur = 20;
+    }
+    if (dur<0.005) {
+        console.log("WARNING: dur below 0.005ms");
+        dur = 0.005;
+    }
+    if (dur>20) {
+        console.log("WARNING: dur above 20s");
+        dur = 20;
+    }
+    
+    
+    if (rate == null) {
+        console.log("WARNING: rate param required");
+        rate = 1;
+    }
+     if (rate<0.05) {
+        console.log("WARNING: rate too low");
+        rate = 0.05;
+    }
+    if (rate>8) {
+        console.log("WARNING: rate too high");
+        rate = 8;
+    }
+        
+    
+    if (start == null) {
+        console.log("WARNING: start param required");
+        start = 0;
+    }
+    if (start<0) {
+        console.log("WARNING: start less than 0");
+        start = 0;
+    }
+    if (start+dur>sampleDur) {
+        console.log("WARNING: start position and duration not valid");
+        start = sampleDur-dur;
+    }
+    
+	if(this.playing == false) {
+		var now = ac.currentTime;
+        
+		this.samplethree.gain.setValueAtTime(0,now);
+        this.source = ac.createBufferSource();
+        this.source.buffer = audioBufferThree;
+        this.source.connect(this.samplethree);
+        this.source.start(now,start,dur);
+        
+        this.samplethree.gain.setValueAtTime(0,now);
+        this.samplethree.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
+        this.samplethree.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
+        this.samplethree.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
+        this.samplethree.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
+        this.samplethree.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
+        this.samplethree.gain.linearRampToValueAtTime(0,now+dur); 
+        
+        this.source.playbackRate.value = rate;
+        this.playing = true;
+	}
+	var index = this.index;
+	setTimeout(function() {
+		samplePlay[index].playing = false;
+	},dur*1000+100);
+}
+
+sampleThree.prototype.dealloc = function() {
+	this.source.stop();
+	this.source.disconnect(this.sample);
+}
+
+sampleThree.prototype.notPlaying = function () {
+	return (this.playing == false);
+}
 
 
 
@@ -560,15 +552,123 @@ Grain.prototype.isNotPlaying = function () {
 
 
 
+
+
+
+// Code for sample 4
+var Sample = function(index) {
+	this.index = index;    
+	this.sample = ac.createGain();
+	this.sample.connect(ac.destination);
+    this.sample.gain.setValueAtTime(0,ac.currentTime);
+	this.playing = false;
+}
+
+dbamplitude = function(x) {
+    return Math.pow(10,x/20)
+}
+
+Sample.prototype.play = function(db,dur,rate,start) {
+    var sampleDur = 30;
+    
+    if (db == null) {
+        console.log("WARNING: amp param required");
+        db = -20;
+    }
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
+    }
+    
+    var amplitude = dbamplitude(db)*dbamplitude(40);
+    
+
+    if (dur == null) {
+        console.log("WARNING: dur param required");
+        dur = 30;
+    }
+    if (dur<0.5) {
+        console.log("WARNING: dur below 0.5s");
+        dur = 0.5;
+    }
+    if (dur>30) {
+        console.log("WARNING: dur above 213s");
+        dur = 30;
+    }
+    
+    
+    if (rate == null) {
+        console.log("WARNING: rate param required");
+        rate = 1;
+    }
+        
+    
+    if (start == null) {
+        console.log("WARNING: start param required");
+        start = 0;
+    }
+    if (start<0) {
+        console.log("WARNING: start less than 0");
+        start = 0;
+    }
+    if (start+dur>sampleDur) {
+        console.log("WARNING: start position and duration not valid");
+        start = sampleDur-dur;
+    }
+    
+	if(this.playing == false) {
+		var now = ac.currentTime;
+        
+		this.sample.gain.setValueAtTime(0,now);
+        this.source = ac.createBufferSource();
+        this.source.buffer = sampleBuffer;
+        this.source.connect(this.sample);
+        this.source.start(now,start,dur);
+        
+        this.sample.gain.setValueAtTime(0,now);
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
+        this.sample.gain.linearRampToValueAtTime(0,now+dur); 
+        
+        this.source.playbackRate.value = rate;
+        this.playing = true;
+	}
+	var index = this.index;
+	setTimeout(function() {
+		samplePlay[index].playing = false;
+	},dur*1000+100);
+}
+
+Sample.prototype.dealloc = function() {
+	this.source.stop();
+	this.source.disconnect(this.sample);
+}
+
+Sample.prototype.notPlaying = function () {
+	return (this.playing == false);
+}
+
+
+
+
+
+
+
+// where everything loads onto apert
 function apertInitialize() { 
     
     getDataOne();
     getDataTwo();
+    getDataThree();
     
     loadSample();
     
     synthBank = new Array();
     synthBankTwo = new Array();
+    synthBankThree = new Array();
     
     samplePlay = new Array();
     rectBank = new Array();
@@ -581,9 +681,12 @@ function apertInitialize() {
     
     for(var o=0;o<100;o++) {
         synthBankTwo[o] = new sampleTwo(o);
-    }    
-
+    }  
     
+     for(var p=0;p<100;p++) {
+        synthBankThree[p] = new sampleThree(p);
+    }  
+ 
     
     for(var m=0;m<100;m++) {
         samplePlay[m] = new Sample(m);
@@ -594,6 +697,7 @@ function apertInitialize() {
     }
     animationLoop();   
 }
+
 
 
 function playSampleOne(dbamp,dur,rate,rmod,start,smod) {   
@@ -617,7 +721,7 @@ for(n=0;n<100;n++) {
 if(n<100) { // we found one that is not playing
 	synthBank[n].play(dbamp,dur,rate,start);
 } else {
-	//console.log("sorry too many notes playing right now");
+	console.log("sorry too many notes playing right now");
 }
 } 
 
@@ -641,7 +745,31 @@ for(o=0;o<100;o++) {
 if(o<100) { 
 	synthBankTwo[o].play(dbamp,dur,rate,start);
 } else {
-	
+	console.log("sorry too many notes playing right now");
+}
+} 
+
+
+function playSampleThree(dbamp,dur,rate,rmod,start,smod) {   
+var p;
+
+var randomRate = Math.random() < 0.5 ? -1 : 1;
+var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
+    rate = rate * Math.fround(deviationRate);
+    
+var startTime = (new Date()).getTime();
+      
+var randomStart = Math.random() < 0.5 ? 1 : 1;
+var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
+    start = start * Math.fround(deviationStart);
+    
+for(p=0;p<100;p++) {
+	if(synthBankThree[p].notPlaying())break;
+}
+if(p<100) { 
+	synthBankThree[p].play(dbamp,dur,rate,start);
+} else {
+	console.log("sorry too many notes playing right now");
 }
 } 
 
@@ -660,7 +788,7 @@ function callHim(dbamp,dur,rate,start) {
 }
 
    
-function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { // period x is in milliseconds
+function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { 
     
     var randomGrainNum = Math.random() < 0.5 ? -1 : 1;
     var deviationNum = Math.random()*(randomGrainNum*nmod*0.01);
@@ -693,10 +821,17 @@ function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { // period x is in m
 // code for sample one
 
 var counter = 0;
+var id;
+
+function playGrainsSample(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
+    id = setInterval(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
+}
 
 playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleOne(dbamp,dur,rate,rmod,start,smod);
-    drawAParticleFromTheBank(dur);   
+    drawAParticleFromTheBank(dur);
+    
+    console.log(counter);
     
     if(counter==grainNum){
         counter=0;
@@ -706,8 +841,32 @@ playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,g
     else{
         counter++; // counter = counter + 1
     }
-    setTimeout(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
+    // setTimeout(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
 }
+
+
+
+/* psudo code to fix the playback problem with the grains...
+
+
+function playGrains(arguments?) {
+
+var counter = 0
+
+function playSampleOne() {
+
+counter++
+
+if counter == grainNum
+    clearInterval(id)
+    }
+    
+    var id = setInterval(playSampleOne, grainPeriod)
+    }
+    
+    
+*/   
+
 
 
 // code for sample two
@@ -728,3 +887,24 @@ playGrainsTwo = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPerio
     }
     setTimeout(playGrainsTwo(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
 }
+
+
+// code for sample three
+
+var counter = 0;
+
+playGrainsThree = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
+	playSampleThree(dbamp,dur,rate,rmod,start,smod);
+    drawAParticleFromTheBank(dur);   
+    
+    if(counter==grainNum){
+        counter=0;
+        return;
+    }
+    
+    else{
+        counter++; // counter = counter + 1
+    }
+    setTimeout(playGrainsThree(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
+}
+
