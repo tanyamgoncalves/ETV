@@ -1,6 +1,7 @@
 Etv {
 
 	classvar <>address;
+	classvar <>stream;
 
 
 	*boot{
@@ -45,7 +46,7 @@ Etv {
 			inf.do {(
 				loop ({
 
-					Etv.grainX(db,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
+					Etv.grainX(db,stream,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
 					1.wait;
 				})
 			)};

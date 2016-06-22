@@ -212,7 +212,7 @@ function loadSample() {
   request.open('GET','ringing-phone-tone.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
-      console.log('Sound File for Part IV was Loaded.');
+      console.log('Ring Tone Loaded.');
     var sampleData = request.response;
     ac.decodeAudioData(sampleData, function(buffer) {
     sampleBuffer = buffer;
@@ -618,11 +618,11 @@ Sample.prototype.play = function(db,dur,rate,start) {
         this.source.start(now,start,dur);
         
         this.sample.gain.setValueAtTime(0,now);
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6))); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.3,now+((dur/6))); 
         this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
         this.sample.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
         this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.2,now+((dur/6)*5)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.3,now+((dur/6)*5)); 
         this.sample.gain.linearRampToValueAtTime(0,now+dur); 
         
         this.source.playbackRate.value = rate;
@@ -630,7 +630,7 @@ Sample.prototype.play = function(db,dur,rate,start) {
 	}
 	var index = this.index;
 	setTimeout(function() {
-		samplePlay[index].playing = false;
+		samplePlay.playing = false;
 	},dur*1000+100);
 }
 
@@ -655,14 +655,14 @@ function apertInitialize() {
     getDataOne();
     getDataTwo();
     getDataThree();
-    
+
     loadSample();
     
     synthBank = new Array();
     synthBankTwo = new Array();
     synthBankThree = new Array();
     
-    samplePlay = new Array();
+    // samplePlay = new Array();
     rectBank = new Array();
     
     
@@ -675,14 +675,13 @@ function apertInitialize() {
         synthBankTwo[o] = new sampleTwo(o);
     }  
     
-     for(var p=0;p<10;p++) {
+    for(var p=0;p<10;p++) {
         synthBankThree[p] = new sampleThree(p);
     }  
  
     
-     // for(var m=0;m<100;m++) {
-       // samplePlay[m] = new Sample(m);
-   // } 
+    samplePlay = new Sample;
+   
     
     for(var k=0;k<100;k++) {
         rectBank[k] = new Rectangle(k);
@@ -767,7 +766,10 @@ if(p<10) {
 
 
 function callHim(dbamp,dur,rate,start) {
-    var m;
+   // var m;
+    
+    samplePlay.play(dbamp,dur,rate,start);
+    
     /*
     for(m=0;m<100;m++) {
 	   if(samplePlay[m].notPlaying())break;
