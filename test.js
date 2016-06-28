@@ -3,6 +3,7 @@ var audioBufferTwo; // sample two
 var audioBufferThree; // sample three
 
 var sampleBuffer; // sample four (phone ring)
+var sampleBufferFour; // final section audio
     
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
@@ -76,13 +77,26 @@ document.addEventListener('DOMContentLoaded',function() {
 },false);
 
 
+/* Compressor code
+
+var compressor = ac.createDynamicsCompressor();
+    compressor.threshold.value = -50
+    compressor.knee.value = 40;
+    compressor.ratio.value = 12;
+    compressor.reduction.value = -20;
+    compressor.attack.value = 0;
+    compressor.release.value = 0.25;
+    
+    */
+
+
 // Visual code
 var Rectangle = function(index){
     this.x = Math.floor(Math.random()*canvas.width);
     this.y = Math.floor(Math.random()*canvas.height);
     this.width = 5;
     this.height = 5;
-    this.fcolor = '#' + Math.random().toString(16).slice(2, 8).toUpperCase();
+    this.fcolor = '#FFFFFF' // + Math.random().toString(16).slice(2, 8).toUpperCase();
     this.animTime = 1;
     this.alpha = 1;
     this.index = index;
@@ -98,12 +112,13 @@ Rectangle.prototype.draw = function(){
     
         this.animTime += (-0.05/this.dur); // += (-0.05/dur); (-this.dur/100)
     }
+    
     else{
         this.isAnimating = false;
         this.animTime = 1;
         this.x = Math.floor(Math.random()*canvas.width);
         this.y = Math.floor(Math.random()*canvas.height);
-        this.fcolor = '#' + Math.random().toString(16).slice(2, 8).toUpperCase();
+        this.fcolor = '#FFFFFF' // + Math.random().toString(16).slice(2, 8).toUpperCase();
     }
 }
 
@@ -222,7 +237,20 @@ function loadSample() {
   request.send();
 } 
 
-
+function loadFinalSection() {
+  var request = new XMLHttpRequest();
+  request.open('GET','mono-version-3.wav', true);
+  request.responseType = 'arraybuffer';
+  request.onload = function() {
+      console.log('Fourth Section Loaded.');
+    var sampleDataFour = request.response;
+    ac.decodeAudioData(sampleDataFour, function(buffer) {
+    sampleBufferFour = buffer;
+  },
+    function(e){"Error with decoding audio data" + e.err});
+  }
+  request.send();
+} 
 
 
 
@@ -232,7 +260,11 @@ function loadSample() {
 var Grain = function(index) {
 	this.index = index;    
 	this.gain = ac.createGain();
-	this.gain.connect(ac.destination);
+    this.gain.connect(ac.destination);
+    
+    //this.gain.connect(ac.compressor);
+    //this.compressor.connect(ac.destination);
+    
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -325,6 +357,7 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
 Grain.prototype.dealloc = function() {
 	this.source.stop();
+    // this.source.disconnect(this.compressor);
 	this.source.disconnect(this.gain);
 }
 
@@ -454,7 +487,7 @@ dbamplitude = function(x) {
 }
 
 sampleThree.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 20;
+    var sampleDur = 5;
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -470,15 +503,15 @@ sampleThree.prototype.play = function(db,dur,rate,start) {
 
     if (dur == null) {
         console.log("WARNING: dur param required");
-        dur = 20;
+        dur = 5;
     }
     if (dur<0.005) {
         console.log("WARNING: dur below 0.005ms");
         dur = 0.005;
     }
-    if (dur>20) {
-        console.log("WARNING: dur above 20s");
-        dur = 20;
+    if (dur>5) {
+        console.log("WARNING: dur above 5s");
+        dur = 5;
     }
     
     
@@ -547,7 +580,7 @@ sampleThree.prototype.notPlaying = function () {
 
 
 
-// Code for sample 4
+// Code for phone ringing
 var Sample = function(index) {
 	this.index = index;    
 	this.sample = ac.createGain();
@@ -645,6 +678,102 @@ Sample.prototype.notPlaying = function () {
 
 
 
+// Code for fourth section (final)
+var SampleFour = function(index) {
+	this.index = index;    
+	this.sampleFour = ac.createGain();
+	this.sampleFour.connect(ac.destination);
+    this.sampleFour.gain.setValueAtTime(0,ac.currentTime);
+	this.playing = false;
+}
+
+dbamplitude = function(x) {
+    return Math.pow(10,x/20)
+}
+
+SampleFour.prototype.play = function(db,dur,rate,start) {
+    var sampleDur = 300;
+    
+    if (db == null) {
+        console.log("WARNING: amp param required");
+        db = -20;
+    }
+    if (db>-2) {
+        console.log("WARNING: amp too high above -2db");
+        db = -2;
+    }
+    
+    var amplitude = dbamplitude(db)*dbamplitude(20);
+    
+
+    if (dur == null) {
+        console.log("WARNING: dur param required");
+        dur = 300;
+    }
+    if (dur<300) {
+        console.log("WARNING: dur below 0.5s");
+        dur = 300;
+    }
+    if (dur>300) {
+        console.log("WARNING: dur above 240s");
+        dur = 300;
+    }
+    
+    
+    if (rate == null) {
+        console.log("WARNING: rate param required");
+        rate = 1;
+    }
+        
+    
+    if (start == null) {
+        console.log("WARNING: start param required");
+        start = 0;
+    }
+    if (start<0) {
+        console.log("WARNING: start less than 0");
+        start = 0;
+    }
+    if (start+dur>sampleDur) {
+        console.log("WARNING: start position and duration not valid");
+        start = sampleDur-dur;
+    }
+    
+	if(this.playing == false) {
+		var now = ac.currentTime;
+        
+		this.sampleFour.gain.setValueAtTime(0,now);
+        this.source = ac.createBufferSource();
+        this.source.buffer = sampleBufferFour;
+        this.source.connect(this.sampleFour);
+        this.source.start(now,start,dur);
+        
+        this.sampleFour.gain.setValueAtTime(0,now);
+        this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6))); 
+        this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
+        this.sampleFour.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
+        this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
+        this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6)*5)); 
+        this.sampleFour.gain.linearRampToValueAtTime(0,now+dur); 
+        
+        this.source.playbackRate.value = rate;
+        this.playing = true;
+	}
+	var index = this.index;
+	setTimeout(function() {
+		sampleFourPlay.playing = false;
+	},dur*1000+100);
+}
+
+Sample.prototype.dealloc = function() {
+	this.source.stop();
+	this.source.disconnect(this.sampleFour);
+}
+
+Sample.prototype.notPlaying = function () {
+	return (this.playing == false);
+}
+
 
 
 
@@ -657,6 +786,7 @@ function apertInitialize() {
     getDataThree();
 
     loadSample();
+    loadFinalSection();
     
     synthBank = new Array();
     synthBankTwo = new Array();
@@ -667,20 +797,21 @@ function apertInitialize() {
     
     
     
-    for(var n=0;n<10;n++) {
+    for(var n=0;n<5;n++) {
         synthBank[n] = new Grain(n);
     } 
     
-    for(var o=0;o<10;o++) {
+    for(var o=0;o<5;o++) {
         synthBankTwo[o] = new sampleTwo(o);
     }  
     
-    for(var p=0;p<10;p++) {
+    for(var p=0;p<5;p++) {
         synthBankThree[p] = new sampleThree(p);
     }  
  
     
     samplePlay = new Sample;
+    sampleFourPlay = new SampleFour;
    
     
     for(var k=0;k<100;k++) {
@@ -706,10 +837,10 @@ var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     // console.log(start);
     
-for(n=0;n<10;n++) {
+for(n=0;n<5;n++) {
 	if(synthBank[n].isNotPlaying())break;
 }
-if(n<10) { // we found one that is not playing
+if(n<5) { // we found one that is not playing
 	synthBank[n].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
@@ -730,10 +861,10 @@ var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     
-for(o=0;o<10;o++) {
+for(o=0;o<5;o++) {
 	if(synthBankTwo[o].notPlaying())break;
 }
-if(o<10) { 
+if(o<5) { 
 	synthBankTwo[o].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
@@ -754,10 +885,10 @@ var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
     
-for(p=0;p<10;p++) {
+for(p=0;p<5;p++) {
 	if(synthBankThree[p].notPlaying())break;
 }
-if(p<10) { 
+if(p<5) { 
 	synthBankThree[p].play(dbamp,dur,rate,start);
 } else {
 	console.log("sorry too many notes playing right now");
@@ -766,19 +897,11 @@ if(p<10) {
 
 
 function callHim(dbamp,dur,rate,start) {
-   // var m;
-    
     samplePlay.play(dbamp,dur,rate,start);
-    
-    /*
-    for(m=0;m<100;m++) {
-	   if(samplePlay[m].notPlaying())break;
-    }
-    if(m<100) { // we found one that is not playing
-        samplePlay[m].play(dbamp,dur,rate,start);
-    } else {
-        // console.log("sorry too many notes playing right now");
-    } */
+}
+
+function phoneCall(dbamp,dur,rate,start) {
+    sampleFourPlay.play(dbamp,dur,rate,start);
 }
 
    
@@ -815,11 +938,11 @@ function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) {
 // code for sample one
 
 var counter = 0;
-var id;
+// var id;
 
-function playGrainsSample(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
-    id = setInterval(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
-}
+// function playGrainsSample(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
+   // id = setInterval(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
+// }
 
 playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleOne(dbamp,dur,rate,rmod,start,smod);
@@ -835,7 +958,7 @@ playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,g
     else{
         counter++; // counter = counter + 1
     }
-    // setTimeout(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
+     setTimeout(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
 }
 
 

@@ -13,7 +13,7 @@ Etv {
 	*grainX {
 		| db=(-100), dur=0.005, rate=1, rmod=0, start=0, smod=0, grainNum=1, nmod=0, grainPeriod=1000, gmod=0 |
 
-		Etv.address.sendMsg("/all","tanya","playGrainsSample",db,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
+		Etv.address.sendMsg("/all","tanya","playGrains",db,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
 
 	}
 
@@ -34,8 +34,14 @@ Etv {
 
 
 	*callHim {
-		| db=(-25), dur=30, rate=1, start=0 |
+		| db=(-45), dur=30, rate=1, start=0 |
 		Etv.address.sendMsg("/all","tanya","callHim",db,dur,rate,start);
+	}
+
+
+	*phoneCall {
+		| db=(-25), dur=300, rate=1, start=0 |
+		Etv.address.sendMsg("/all","tanya","phoneCall",db,dur,rate,start);
 	}
 
 
@@ -46,7 +52,7 @@ Etv {
 			inf.do {(
 				loop ({
 
-					Etv.grainX(db,stream,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
+					Etv.grainX(db,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
 					1.wait;
 				})
 			)};
@@ -61,7 +67,7 @@ Etv {
 				loop ({
 
 					Etv.grainY(db,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
-					1.wait;
+					2.wait;
 				})
 			)};
 		})}
@@ -76,7 +82,7 @@ Etv {
 				loop ({
 
 					Etv.grainZ(db,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod);
-					1.wait;
+					3.wait;
 				})
 			)};
 		})}
