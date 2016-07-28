@@ -239,7 +239,7 @@ function loadSample() {
 
 function loadFinalSection() {
   var request = new XMLHttpRequest();
-  request.open('GET','mono-version-3.wav', true);
+  request.open('GET','mono-version-4.wav', true);
   request.responseType = 'arraybuffer';
   request.onload = function() {
       console.log('Fourth Section Loaded.');
@@ -692,7 +692,7 @@ dbamplitude = function(x) {
 }
 
 SampleFour.prototype.play = function(db,dur,rate,start) {
-    var sampleDur = 300;
+    var sampleDur = 140;
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -708,15 +708,15 @@ SampleFour.prototype.play = function(db,dur,rate,start) {
 
     if (dur == null) {
         console.log("WARNING: dur param required");
-        dur = 300;
+        dur = 140;
     }
-    if (dur<300) {
+    if (dur<140) {
         console.log("WARNING: dur below 0.5s");
-        dur = 300;
+        dur = 140;
     }
-    if (dur>300) {
+    if (dur>140) {
         console.log("WARNING: dur above 240s");
-        dur = 300;
+        dur = 140;
     }
     
     
