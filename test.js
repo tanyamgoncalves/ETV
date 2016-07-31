@@ -1,7 +1,6 @@
 var audioBufferOne; // sample one
 var audioBufferTwo; // sample two
 var audioBufferThree; // sample three
-
 var sampleBuffer; // sample four (phone ring)
 var sampleBufferFour; // final section audio
     
@@ -169,9 +168,6 @@ function animationLoop(){
 function clear(){
     context.clearRect(0,0,canvas.width,canvas.height);
 } 
-
-
-
 
 
 
