@@ -76,17 +76,7 @@ document.addEventListener('DOMContentLoaded',function() {
 },false);
 
 
-/* Compressor code
 
-var compressor = ac.createDynamicsCompressor();
-    compressor.threshold.value = -50
-    compressor.knee.value = 40;
-    compressor.ratio.value = 12;
-    compressor.reduction.value = -20;
-    compressor.attack.value = 0;
-    compressor.release.value = 0.25;
-    
-    */
 
 
 // Visual code
@@ -254,16 +244,14 @@ function loadFinalSection() {
 // Code for sample one 
 
 var Grain = function(index) {
-	this.index = index;    
+	this.index = index;
+    this.compressor = ac.createDynamicsCompressor();
 	this.gain = ac.createGain();
-    this.gain.connect(ac.destination);
-    
-    //this.gain.connect(ac.compressor);
-    //this.compressor.connect(ac.destination);
-    
+    this.gain.connect(this.compressor);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
+
 
 dbamp = function(x) {
     return Math.pow(10,x/20)
@@ -271,6 +259,14 @@ dbamp = function(x) {
 
 Grain.prototype.play = function(db,dur,rate,start) {
     var sampleDur = 3.00;
+    
+    this.compressor.threshold.value = 20;
+    this.compressor.knee.value = 10;
+    this.compressor.ratio.value = 4;
+    this.compressor.reduction.value = 0;
+    this.compressor.attack.value = 0.05;
+    this.compressor.release.value = 0.1;
+    this.compressor.connect(ac.destination);
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -353,8 +349,7 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
 Grain.prototype.dealloc = function() {
 	this.source.stop();
-    // this.source.disconnect(this.compressor);
-	this.source.disconnect(this.gain);
+	this.source.disconnect(this.compressor);
 }
 
 Grain.prototype.isNotPlaying = function () {
@@ -365,9 +360,10 @@ Grain.prototype.isNotPlaying = function () {
 
 // Code for sample 2
 var sampleTwo = function(index) {
-    this.index = index;    
+    this.index = index; 
+    this.compressor = ac.createDynamicsCompressor();
 	this.sampletwo = ac.createGain();
-	this.sampletwo.connect(ac.destination);
+	this.sampletwo.connect(this.compressor);
     this.sampletwo.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -378,6 +374,15 @@ dbamplitude = function(x) {
 
 sampleTwo.prototype.play = function(db,dur,rate,start) {
     var sampleDur = 20;
+    
+    this.compressor.threshold.value = 20;
+    this.compressor.knee.value = 10;
+    this.compressor.ratio.value = 4;
+    this.compressor.reduction.value = 0;
+    this.compressor.attack.value = 0.05;
+    this.compressor.release.value = 0.1;
+    this.compressor.connect(ac.destination);
+    
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -460,7 +465,7 @@ sampleTwo.prototype.play = function(db,dur,rate,start) {
 
 sampleTwo.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.sample);
+	this.source.disconnect(this.compressor);
 }
 
 sampleTwo.prototype.notPlaying = function () {
@@ -471,9 +476,10 @@ sampleTwo.prototype.notPlaying = function () {
 
 // Code for sample 3
 var sampleThree = function(index) {
-    this.index = index;    
+    this.index = index;   
+    this.compressor = ac.createDynamicsCompressor();
 	this.samplethree = ac.createGain();
-	this.samplethree.connect(ac.destination);
+	this.samplethree.connect(this.compressor);
     this.samplethree.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -485,6 +491,16 @@ dbamplitude = function(x) {
 sampleThree.prototype.play = function(db,dur,rate,start) {
     var sampleDur = 5;
     
+    
+    this.compressor.threshold.value = 20;
+    this.compressor.knee.value = 10;
+    this.compressor.ratio.value = 4;
+    this.compressor.reduction.value = 0;
+    this.compressor.attack.value = 0.05;
+    this.compressor.release.value = 0.1;
+    this.compressor.connect(ac.destination);
+    
+    
     if (db == null) {
         console.log("WARNING: amp param required");
         db = -20;
@@ -494,7 +510,7 @@ sampleThree.prototype.play = function(db,dur,rate,start) {
         db = -2;
     }
     
-    var amplitude = dbamplitude(db)*dbamplitude(40);
+    var amplitude = dbamplitude(db)*dbamplitude(20);
     
 
     if (dur == null) {
@@ -566,7 +582,7 @@ sampleThree.prototype.play = function(db,dur,rate,start) {
 
 sampleThree.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.sample);
+	this.source.disconnect(this.compressor);
 }
 
 sampleThree.prototype.notPlaying = function () {
