@@ -3,6 +3,7 @@ var audioBufferTwo; // sample two
 var audioBufferThree; // sample three
 var sampleBuffer; // sample four (phone ring)
 var sampleBufferFour; // final section audio
+var compressor;
     
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded',function() {
 
 
 
-// Visual code
+/* Visual code
 var Rectangle = function(index){
     this.x = Math.floor(Math.random()*canvas.width);
     this.y = Math.floor(Math.random()*canvas.height);
@@ -157,7 +158,7 @@ function animationLoop(){
     
 function clear(){
     context.clearRect(0,0,canvas.width,canvas.height);
-} 
+} */ 
 
 
 
@@ -245,9 +246,9 @@ function loadFinalSection() {
 
 var Grain = function(index) {
 	this.index = index;
-    this.compressor = ac.createDynamicsCompressor();
+    //this.compressor = ac.createDynamicsCompressor();
 	this.gain = ac.createGain();
-    this.gain.connect(this.compressor);
+    this.gain.connect(compressor);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -260,13 +261,6 @@ dbamp = function(x) {
 Grain.prototype.play = function(db,dur,rate,start) {
     var sampleDur = 3.00;
     
-    this.compressor.threshold.value = 20;
-    this.compressor.knee.value = 10;
-    this.compressor.ratio.value = 4;
-    this.compressor.reduction.value = 0;
-    this.compressor.attack.value = 0.05;
-    this.compressor.release.value = 0.1;
-    this.compressor.connect(ac.destination);
     
     if (db == null) {
         console.log("WARNING: amp param required");
@@ -277,7 +271,7 @@ Grain.prototype.play = function(db,dur,rate,start) {
         db = -2;
     }
     
-    var amp = dbamp(db)*dbamp(60);
+    var amp = dbamp(db)*dbamp(35);
     
 
     if (dur == null) {
@@ -349,7 +343,7 @@ Grain.prototype.play = function(db,dur,rate,start) {
 
 Grain.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.compressor);
+	this.source.disconnect(compressor);
 }
 
 Grain.prototype.isNotPlaying = function () {
@@ -361,9 +355,9 @@ Grain.prototype.isNotPlaying = function () {
 // Code for sample 2
 var sampleTwo = function(index) {
     this.index = index; 
-    this.compressor = ac.createDynamicsCompressor();
+    //this.compressor = ac.createDynamicsCompressor();
 	this.sampletwo = ac.createGain();
-	this.sampletwo.connect(this.compressor);
+	this.sampletwo.connect(compressor);
     this.sampletwo.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -375,15 +369,6 @@ dbamplitude = function(x) {
 sampleTwo.prototype.play = function(db,dur,rate,start) {
     var sampleDur = 20;
     
-    this.compressor.threshold.value = 20;
-    this.compressor.knee.value = 10;
-    this.compressor.ratio.value = 4;
-    this.compressor.reduction.value = 0;
-    this.compressor.attack.value = 0.05;
-    this.compressor.release.value = 0.1;
-    this.compressor.connect(ac.destination);
-    
-    
     if (db == null) {
         console.log("WARNING: amp param required");
         db = -20;
@@ -393,7 +378,7 @@ sampleTwo.prototype.play = function(db,dur,rate,start) {
         db = -2;
     }
     
-    var amplitude = dbamplitude(db)*dbamplitude(40);
+    var amplitude = dbamplitude(db)*dbamplitude(35);
     
 
     if (dur == null) {
@@ -465,7 +450,7 @@ sampleTwo.prototype.play = function(db,dur,rate,start) {
 
 sampleTwo.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.compressor);
+	this.source.disconnect(compressor);
 }
 
 sampleTwo.prototype.notPlaying = function () {
@@ -477,9 +462,9 @@ sampleTwo.prototype.notPlaying = function () {
 // Code for sample 3
 var sampleThree = function(index) {
     this.index = index;   
-    this.compressor = ac.createDynamicsCompressor();
+    //this.compressor = ac.createDynamicsCompressor();
 	this.samplethree = ac.createGain();
-	this.samplethree.connect(this.compressor);
+	this.samplethree.connect(compressor);
     this.samplethree.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -490,15 +475,6 @@ dbamplitude = function(x) {
 
 sampleThree.prototype.play = function(db,dur,rate,start) {
     var sampleDur = 5;
-    
-    
-    this.compressor.threshold.value = 20;
-    this.compressor.knee.value = 10;
-    this.compressor.ratio.value = 4;
-    this.compressor.reduction.value = 0;
-    this.compressor.attack.value = 0.05;
-    this.compressor.release.value = 0.1;
-    this.compressor.connect(ac.destination);
     
     
     if (db == null) {
@@ -582,7 +558,7 @@ sampleThree.prototype.play = function(db,dur,rate,start) {
 
 sampleThree.prototype.dealloc = function() {
 	this.source.stop();
-	this.source.disconnect(this.compressor);
+	this.source.disconnect(compressor);
 }
 
 sampleThree.prototype.notPlaying = function () {
@@ -596,7 +572,7 @@ sampleThree.prototype.notPlaying = function () {
 var Sample = function(index) {
 	this.index = index;    
 	this.sample = ac.createGain();
-	this.sample.connect(ac.destination);
+	this.sample.connect(compressor);
     this.sample.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -662,13 +638,15 @@ Sample.prototype.play = function(db,dur,rate,start) {
         this.source.connect(this.sample);
         this.source.start(now,start,dur);
         
-        this.sample.gain.setValueAtTime(0,now);
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.3,now+((dur/6))); 
+
+        this.sample.gain.setValueAtTime(0.2,now);
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6))); 
         this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.9,now+((dur/6)*3)); 
         this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
-        this.sample.gain.linearRampToValueAtTime(amplitude*0.3,now+((dur/6)*5)); 
-        this.sample.gain.linearRampToValueAtTime(0,now+dur); 
+        this.sample.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6)*5)); 
+        this.sample.gain.linearRampToValueAtTime(0.2,now+dur); 
+        
         
         this.source.playbackRate.value = rate;
         this.playing = true;
@@ -694,7 +672,7 @@ Sample.prototype.notPlaying = function () {
 var SampleFour = function(index) {
 	this.index = index;    
 	this.sampleFour = ac.createGain();
-	this.sampleFour.connect(ac.destination);
+	this.sampleFour.connect(compressor);
     this.sampleFour.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -760,12 +738,13 @@ SampleFour.prototype.play = function(db,dur,rate,start) {
         this.source.connect(this.sampleFour);
         this.source.start(now,start,dur);
         
-        this.sampleFour.gain.setValueAtTime(0,now);
+        
+        this.sampleFour.gain.setValueAtTime(0.3,now);
         this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6))); 
         this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
         this.sampleFour.gain.linearRampToValueAtTime(amplitude*1,now+((dur/6)*3)); 
         this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
-        this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6)*5)); 
+        this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.3,now+((dur/6)*5)); 
         this.sampleFour.gain.linearRampToValueAtTime(0,now+dur); 
         
         this.source.playbackRate.value = rate;
@@ -787,12 +766,26 @@ Sample.prototype.notPlaying = function () {
 }
 
 
+var compressor = function() {
+    
+    this.compressor = ac.createDynamicsCompressor();
+    this.compressor.threshold.value = 20;
+    this.compressor.knee.value = 10;
+    this.compressor.ratio.value = 4;
+    this.compressor.reduction.value = 0;
+    this.compressor.attack.value = 0.05;
+    this.compressor.release.value = 0.1;
+    this.compressor.connect(ac.destination);
+
+} 
 
 
 
 // where everything loads onto apert
 function apertInitialize() { 
     
+    compressor();
+   
     getDataOne();
     getDataTwo();
     getDataThree();
@@ -805,9 +798,9 @@ function apertInitialize() {
     synthBankThree = new Array();
     
     // samplePlay = new Array();
-    rectBank = new Array();
+    // rectBank = new Array();
     
-    
+  
     
     for(var n=0;n<5;n++) {
         synthBank[n] = new Grain(n);
@@ -826,10 +819,10 @@ function apertInitialize() {
     sampleFourPlay = new SampleFour;
    
     
-    for(var k=0;k<100;k++) {
+    /*for(var k=0;k<100;k++) {
         rectBank[k] = new Rectangle(k);
     }
-    animationLoop();   
+    animationLoop(); */  
 }
 
 
@@ -958,7 +951,7 @@ var counter = 0;
 
 playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleOne(dbamp,dur,rate,rmod,start,smod);
-    drawAParticleFromTheBank(dur);
+   // drawAParticleFromTheBank(dur);
     
     console.log(counter);
     
@@ -1004,7 +997,7 @@ var counter = 0;
 
 playGrainsTwo = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleTwo(dbamp,dur,rate,rmod,start,smod);
-    drawAParticleFromTheBank(dur);   
+   // drawAParticleFromTheBank(dur);   
     
     if(counter==grainNum){
         counter=0;
@@ -1024,7 +1017,7 @@ var counter = 0;
 
 playGrainsThree = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleThree(dbamp,dur,rate,rmod,start,smod);
-    drawAParticleFromTheBank(dur);   
+   // drawAParticleFromTheBank(dur);   
     
     if(counter==grainNum){
         counter=0;
