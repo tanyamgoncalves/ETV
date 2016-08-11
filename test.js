@@ -3,7 +3,11 @@ var audioBufferTwo; // sample two
 var audioBufferThree; // sample three
 var sampleBuffer; // sample four (phone ring)
 var sampleBufferFour; // final section audio
+
 var compressor;
+var globalGain;
+
+
     
 // Create the elements for the visual canvas
 var canvas = document.createElement("canvas");
@@ -248,7 +252,7 @@ var Grain = function(index) {
 	this.index = index;
     //this.compressor = ac.createDynamicsCompressor();
 	this.gain = ac.createGain();
-    this.gain.connect(compressor);
+    //this.gain.connect(compressor);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -322,6 +326,7 @@ Grain.prototype.play = function(db,dur,rate,start) {
         this.source = ac.createBufferSource();
         this.source.buffer = audioBufferOne;
         this.source.connect(this.gain);
+        this.gain.connect(compressor);
         this.source.start(now,start,dur);
         
         this.gain.gain.setValueAtTime(0,now);
@@ -357,7 +362,7 @@ var sampleTwo = function(index) {
     this.index = index; 
     //this.compressor = ac.createDynamicsCompressor();
 	this.sampletwo = ac.createGain();
-	this.sampletwo.connect(compressor);
+	//this.sampletwo.connect(compressor);
     this.sampletwo.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -429,6 +434,7 @@ sampleTwo.prototype.play = function(db,dur,rate,start) {
         this.source = ac.createBufferSource();
         this.source.buffer = audioBufferTwo;
         this.source.connect(this.sampletwo);
+        this.sampletwo.connect(compressor);
         this.source.start(now,start,dur);
         
         this.sampletwo.gain.setValueAtTime(0,now);
@@ -464,7 +470,7 @@ var sampleThree = function(index) {
     this.index = index;   
     //this.compressor = ac.createDynamicsCompressor();
 	this.samplethree = ac.createGain();
-	this.samplethree.connect(compressor);
+	//this.samplethree.connect(compressor);
     this.samplethree.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -537,6 +543,7 @@ sampleThree.prototype.play = function(db,dur,rate,start) {
         this.source = ac.createBufferSource();
         this.source.buffer = audioBufferThree;
         this.source.connect(this.samplethree);
+        this.samplethree.connect(compressor);
         this.source.start(now,start,dur);
         
         this.samplethree.gain.setValueAtTime(0,now);
@@ -572,7 +579,7 @@ sampleThree.prototype.notPlaying = function () {
 var Sample = function(index) {
 	this.index = index;    
 	this.sample = ac.createGain();
-	this.sample.connect(compressor);
+	//this.sample.connect(compressor);
     this.sample.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -636,6 +643,7 @@ Sample.prototype.play = function(db,dur,rate,start) {
         this.source = ac.createBufferSource();
         this.source.buffer = sampleBuffer;
         this.source.connect(this.sample);
+        this.sample.connect(compressor);
         this.source.start(now,start,dur);
         
 
@@ -672,7 +680,7 @@ Sample.prototype.notPlaying = function () {
 var SampleFour = function(index) {
 	this.index = index;    
 	this.sampleFour = ac.createGain();
-	this.sampleFour.connect(compressor);
+	//this.sampleFour.connect(compressor);
     this.sampleFour.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -736,6 +744,7 @@ SampleFour.prototype.play = function(db,dur,rate,start) {
         this.source = ac.createBufferSource();
         this.source.buffer = sampleBufferFour;
         this.source.connect(this.sampleFour);
+        this.sampleFour.connect(compressor);
         this.source.start(now,start,dur);
         
         
@@ -766,25 +775,23 @@ Sample.prototype.notPlaying = function () {
 }
 
 
-var compressor = function() {
-    
-    this.compressor = ac.createDynamicsCompressor();
-    this.compressor.threshold.value = 20;
-    this.compressor.knee.value = 10;
-    this.compressor.ratio.value = 4;
-    this.compressor.reduction.value = 0;
-    this.compressor.attack.value = 0.05;
-    this.compressor.release.value = 0.1;
-    this.compressor.connect(ac.destination);
-
-} 
-
-
 
 // where everything loads onto apert
 function apertInitialize() { 
     
-    compressor();
+    compressor = ac.createDynamicsCompressor();
+    compressor.threshold.value = -15;
+    compressor.ratio.value = 20;
+    //compressor.knee.value = 10;
+    //compressor.reduction.value = 0;
+    //compressor.attack.value = 0.05;
+    //compressor.release.value = 0.1;
+
+    globalGain = ac.createGain();
+    globalGain.gain.value = dbamplitude(10);
+
+    compressor.connect(globalGain);
+    globalGain.connect(ac.destination);
    
     getDataOne();
     getDataTwo();
@@ -799,8 +806,6 @@ function apertInitialize() {
     
     // samplePlay = new Array();
     // rectBank = new Array();
-    
-  
     
     for(var n=0;n<5;n++) {
         synthBank[n] = new Grain(n);
@@ -833,14 +838,13 @@ var n;
 var randomRate = Math.random() < 0.5 ? -1 : 1;
 var deviationRate = Math.random()*(randomRate*rmod*0.01)+1.00;
     rate = rate * Math.fround(deviationRate);
-    // console.log(rate);
     
 var startTime = (new Date()).getTime();
       
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
-    // console.log(start);
+    
     
 for(n=0;n<5;n++) {
 	if(synthBank[n].isNotPlaying())break;
@@ -915,28 +919,10 @@ function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) {
     var randomGrainNum = Math.random() < 0.5 ? -1 : 1;
     var deviationNum = Math.random()*(randomGrainNum*nmod*0.01);
     grainNum = grainNum * Math.fround(deviationNum);
-    // console.log(grainNum);
-    
-   // var randomGrainPeriod = Math.random() < 0.5 ? -1 : 1;
-   // var deviationGrain = Math.random()*(randomGrainPeriod*gmod*0.01);
     
     var deviationGrain = Math.random()*gmod*2-gmod;
     grainPeriod = grainPeriod * Math.fround(deviationGrain);
-    // console.log(grainPeriod);
 
-    /*
-    if (grainPeriod == null) {
-        console.log("WARNING: grain period required");
-        grainPeriod = 1000;
-    }
-    if (grainPeriod>1000) {
-        console.log("WARNING: grain period greater than 1000");
-        grainPeriod = 1000;
-    }
-    if (grainPeriod<100) {
-        console.log("WARNING: grain period less than 100");
-        grainPeriod = 100;
-    } */
 }
 
 
