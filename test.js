@@ -1,32 +1,26 @@
+// EMBRACING THE VOICE
+
 var audioBufferOne; // sample one
 var audioBufferTwo; // sample two
 var audioBufferThree; // sample three
-var sampleBuffer; // sample four (phone ring)
-var sampleBufferFour; // final section audio
+var sampleBuffer; // final section audio (phone ring)
+var sampleBufferFour; // final section audio (phone call conversation)
 
-var compressor;
-var globalGain;
-
-
+var compressor; // compressor for audio samples
+var globalGain; // global gain for all samples
     
-// Create the elements for the visual canvas
+
+// Create the elements for the visual canvas on mobile phones
 var canvas = document.createElement("canvas");
 canvas.style.background = 'black';
 var context = canvas.getContext('2d');
 
-var ga = 0.0;
-var timerId = 0;
-var angle = 0;
-
-// Global adjustments to the particles (vel and color not used yet)
-var gvel = 0.1;
-var gsize = 10;
-var gcolor = 0;
 
 // Make things only play for once iOS interaction
 var playSimpleOnce = false;
 
-// For iOS interaction
+
+// For iOs interaction
 function simple(freq,amp) {
   apertStartAudio();
     
@@ -54,8 +48,9 @@ function simple(freq,amp) {
 	},1000);
 };
 
+
+// Start button for audiences to click 
 document.addEventListener('DOMContentLoaded',function() {
-  // write label to top of document
   var div = document.createElement('div');
   document.body.appendChild(div);
     
@@ -81,91 +76,7 @@ document.addEventListener('DOMContentLoaded',function() {
 },false);
 
 
-
-
-
-/* Visual code
-var Rectangle = function(index){
-    this.x = Math.floor(Math.random()*canvas.width);
-    this.y = Math.floor(Math.random()*canvas.height);
-    this.width = 5;
-    this.height = 5;
-    this.fcolor = '#FFFFFF' // + Math.random().toString(16).slice(2, 8).toUpperCase();
-    this.animTime = 1;
-    this.alpha = 1;
-    this.index = index;
-    this.isAnimating = false;
-}
-
-Rectangle.prototype.draw = function(){
-    if(this.animTime >= 0){
-        context.beginPath();
-        context.rect(this.x, this.y, this.width*gsize, this.height*gsize);
-        context.fillStyle = this.fcolor;
-        context.fill();
-    
-        this.animTime += (-0.05/this.dur); // += (-0.05/dur); (-this.dur/100)
-    }
-    
-    else{
-        this.isAnimating = false;
-        this.animTime = 1;
-        this.x = Math.floor(Math.random()*canvas.width);
-        this.y = Math.floor(Math.random()*canvas.height);
-        this.fcolor = '#FFFFFF' // + Math.random().toString(16).slice(2, 8).toUpperCase();
-    }
-}
-
-Rectangle.prototype.setDur = function(dur){
-    this.dur = dur;
-}
-
-Rectangle.prototype.queueDraw = function(){
-    this.isAnimating = true;
-}
-
-Rectangle.prototype.isNotAnimating = function () {
-	return (this.isAnimating == false);
-}
-
- 
-window.requestAnimFrame = (function(callback) {
-    return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
-    function(callback) {
-        window.setTimeout(callback, 1000 / 60);
-    };
-});
-
-function drawAParticleFromTheBank(dur){
-    var j;
-    
-    for(j=0;j<100;j++){
-        if(rectBank[j].isNotAnimating())break;
-    }
-    
-    if(j<100) {
-        rectBank[j].queueDraw();
-        rectBank[j].setDur(dur);
-    }
-}
-    
-function animationLoop(){
-    clear();
-    for(var i=0;i<100;i++){
-        if(rectBank[i].isAnimating){
-            rectBank[i].draw();
-        }
-    }
-    requestAnimationFrame(animationLoop);
-}
-
-    
-function clear(){
-    context.clearRect(0,0,canvas.width,canvas.height);
-} */ 
-
-
-
+// Buffer sources (audio sample loaders)
 function getDataOne() {   
   var request = new XMLHttpRequest();
   request.open('GET','why-vocals.wav', true);
@@ -196,7 +107,6 @@ function getDataTwo() {
   request.send();
 } 
 
-
 function getDataThree() {   
   var request = new XMLHttpRequest();
   request.open('GET','hey-vocals.wav', true);
@@ -211,7 +121,6 @@ function getDataThree() {
   }
   request.send();
 } 
-
 
 function loadSample() {
   var request = new XMLHttpRequest();
@@ -244,19 +153,13 @@ function loadFinalSection() {
 } 
 
 
-
-
 // Code for sample one 
-
 var Grain = function(index) {
 	this.index = index;
-    //this.compressor = ac.createDynamicsCompressor();
 	this.gain = ac.createGain();
-    //this.gain.connect(compressor);
     this.gain.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
-
 
 dbamp = function(x) {
     return Math.pow(10,x/20)
@@ -356,13 +259,10 @@ Grain.prototype.isNotPlaying = function () {
 }
 
 
-
 // Code for sample 2
 var sampleTwo = function(index) {
     this.index = index; 
-    //this.compressor = ac.createDynamicsCompressor();
 	this.sampletwo = ac.createGain();
-	//this.sampletwo.connect(compressor);
     this.sampletwo.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -464,13 +364,10 @@ sampleTwo.prototype.notPlaying = function () {
 }
 
 
-
 // Code for sample 3
 var sampleThree = function(index) {
     this.index = index;   
-    //this.compressor = ac.createDynamicsCompressor();
 	this.samplethree = ac.createGain();
-	//this.samplethree.connect(compressor);
     this.samplethree.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -573,13 +470,10 @@ sampleThree.prototype.notPlaying = function () {
 }
 
 
-
-
-// Code for phone ringing
+// Code for final section (phone ringing)
 var Sample = function(index) {
 	this.index = index;    
 	this.sample = ac.createGain();
-	//this.sample.connect(compressor);
     this.sample.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -646,7 +540,6 @@ Sample.prototype.play = function(db,dur,rate,start) {
         this.sample.connect(compressor);
         this.source.start(now,start,dur);
         
-
         this.sample.gain.setValueAtTime(0.2,now);
         this.sample.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6))); 
         this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
@@ -654,7 +547,6 @@ Sample.prototype.play = function(db,dur,rate,start) {
         this.sample.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*4)); 
         this.sample.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6)*5)); 
         this.sample.gain.linearRampToValueAtTime(0.2,now+dur); 
-        
         
         this.source.playbackRate.value = rate;
         this.playing = true;
@@ -675,12 +567,10 @@ Sample.prototype.notPlaying = function () {
 }
 
 
-
-// Code for fourth section (final)
+// Code for final section (phone call conversation)
 var SampleFour = function(index) {
 	this.index = index;    
 	this.sampleFour = ac.createGain();
-	//this.sampleFour.connect(compressor);
     this.sampleFour.gain.setValueAtTime(0,ac.currentTime);
 	this.playing = false;
 }
@@ -747,7 +637,6 @@ SampleFour.prototype.play = function(db,dur,rate,start) {
         this.sampleFour.connect(compressor);
         this.source.start(now,start,dur);
         
-        
         this.sampleFour.gain.setValueAtTime(0.3,now);
         this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.6,now+((dur/6))); 
         this.sampleFour.gain.linearRampToValueAtTime(amplitude*0.8,now+((dur/6)*2)); 
@@ -775,19 +664,14 @@ Sample.prototype.notPlaying = function () {
 }
 
 
-
-// where everything loads onto apert
+// Where everything loads onto Apert
 function apertInitialize() { 
     
-    compressor = ac.createDynamicsCompressor();
+    compressor = ac.createDynamicsCompressor(); // compressor design for audio samples
     compressor.threshold.value = -15;
     compressor.ratio.value = 20;
-    //compressor.knee.value = 10;
-    //compressor.reduction.value = 0;
-    //compressor.attack.value = 0.05;
-    //compressor.release.value = 0.1;
 
-    globalGain = ac.createGain();
+    globalGain = ac.createGain(); // global gain to control audio sample levels
     globalGain.gain.value = dbamplitude(10);
 
     compressor.connect(globalGain);
@@ -804,9 +688,6 @@ function apertInitialize() {
     synthBankTwo = new Array();
     synthBankThree = new Array();
     
-    // samplePlay = new Array();
-    // rectBank = new Array();
-    
     for(var n=0;n<5;n++) {
         synthBank[n] = new Grain(n);
     } 
@@ -819,19 +700,12 @@ function apertInitialize() {
         synthBankThree[p] = new sampleThree(p);
     }  
  
-    
     samplePlay = new Sample;
-    sampleFourPlay = new SampleFour;
-   
-    
-    /*for(var k=0;k<100;k++) {
-        rectBank[k] = new Rectangle(k);
-    }
-    animationLoop(); */  
+    sampleFourPlay = new SampleFour; 
 }
 
 
-
+// Functions for each sample, integrated randomness (asynchronous features for rate and start position)
 function playSampleOne(dbamp,dur,rate,rmod,start,smod) {   
 var n;
 
@@ -844,7 +718,6 @@ var startTime = (new Date()).getTime();
 var randomStart = Math.random() < 0.5 ? 1 : 1;
 var deviationStart = Math.random()*(randomStart*smod*0.01)+2.00;
     start = start * Math.fround(deviationStart);
-    
     
 for(n=0;n<5;n++) {
 	if(synthBank[n].isNotPlaying())break;
@@ -905,15 +778,7 @@ if(p<5) {
 } 
 
 
-function callHim(dbamp,dur,rate,start) {
-    samplePlay.play(dbamp,dur,rate,start);
-}
-
-function phoneCall(dbamp,dur,rate,start) {
-    sampleFourPlay.play(dbamp,dur,rate,start);
-}
-
-   
+// Function to update in samples 1 to 3 (asychronous features for grain number and grain period)
 function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) { 
     
     var randomGrainNum = Math.random() < 0.5 ? -1 : 1;
@@ -926,18 +791,23 @@ function updateGrainPeriod(grainNum,nmod,grainPeriod,gmod) {
 }
 
 
-// code for sample one
+// Function for phone rining sample
+function callHim(dbamp,dur,rate,start) {
+    samplePlay.play(dbamp,dur,rate,start);
+}
 
+
+// Function for phone call conversation sample
+function phoneCall(dbamp,dur,rate,start) {
+    sampleFourPlay.play(dbamp,dur,rate,start);
+}
+ 
+
+// Code for sample one
 var counter = 0;
-// var id;
-
-// function playGrainsSample(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
-   // id = setInterval(playGrains(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
-// }
 
 playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleOne(dbamp,dur,rate,rmod,start,smod);
-   // drawAParticleFromTheBank(dur);
     
     console.log(counter);
     
@@ -953,37 +823,11 @@ playGrains = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,g
 }
 
 
-
-/* psudo code to fix the playback problem with the grains...
-
-
-function playGrains(arguments?) {
-
-var counter = 0
-
-function playSampleOne() {
-
-counter++
-
-if counter == grainNum
-    clearInterval(id)
-    }
-    
-    var id = setInterval(playSampleOne, grainPeriod)
-    }
-    
-    
-*/   
-
-
-
-// code for sample two
-
+// Code for sample two
 var counter = 0;
 
 playGrainsTwo = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleTwo(dbamp,dur,rate,rmod,start,smod);
-   // drawAParticleFromTheBank(dur);   
     
     if(counter==grainNum){
         counter=0;
@@ -997,13 +841,11 @@ playGrainsTwo = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPerio
 }
 
 
-// code for sample three
-
+// Code for sample three
 var counter = 0;
 
 playGrainsThree = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod,gmod) {
 	playSampleThree(dbamp,dur,rate,rmod,start,smod);
-   // drawAParticleFromTheBank(dur);   
     
     if(counter==grainNum){
         counter=0;
@@ -1015,4 +857,3 @@ playGrainsThree = function(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPer
     }
     setTimeout(playGrainsThree(dbamp,dur,rate,rmod,start,smod,grainNum,nmod,grainPeriod),grainPeriod,gmod);
 }
-
